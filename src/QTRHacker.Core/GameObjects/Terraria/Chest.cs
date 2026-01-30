@@ -14,16 +14,16 @@ public class Chest : GameObject
 	public virtual int X { get => InternalObject.x; set => InternalObject.x = value; }
 	public virtual int Y { get => InternalObject.y; set => InternalObject.y = value; }
 
-	public virtual GameObjectArrayV<int> ChestItemSpawn
-	{
-		get => new(Context, InternalObject.chestItemSpawn);
-		set => InternalObject.chestItemSpawn = value.InternalObject;
-	}
-	public virtual GameObjectArrayV<int> ChestItemSpawn2
-	{
-		get => new(Context, InternalObject.chestItemSpawn2);
-		set => InternalObject.chestItemSpawn2 = value.InternalObject;
-	}
+	//public virtual GameObjectArrayV<int> ChestItemSpawn
+	//{
+	//	get => new(Context, InternalObject.chestItemSpawn);
+	//	set => InternalObject.chestItemSpawn = value.InternalObject;
+	//}
+	//public virtual GameObjectArrayV<int> ChestItemSpawn2
+	//{
+	//	get => new(Context, InternalObject.chestItemSpawn2);
+	//	set => InternalObject.chestItemSpawn2 = value.InternalObject;
+	//}
 	public virtual GameObjectArrayV<int> ChestTypeToIcon
 	{
 		get => new(Context, InternalObject.chestTypeToIcon);
@@ -34,11 +34,11 @@ public class Chest : GameObject
 		get => new(Context, InternalObject.chestTypeToIcon2);
 		set => InternalObject.chestTypeToIcon2 = value.InternalObject;
 	}
-	public virtual GameObjectArrayV<int> DresserItemSpawn
-	{
-		get => new(Context, InternalObject.dresserItemSpawn);
-		set => InternalObject.dresserItemSpawn = value.InternalObject;
-	}
+	//public virtual GameObjectArrayV<int> DresserItemSpawn
+	//{
+	//	get => new(Context, InternalObject.dresserItemSpawn);
+	//	set => InternalObject.dresserItemSpawn = value.InternalObject;
+	//}
 	public virtual GameObjectArrayV<int> DresserTypeToIcon
 	{
 		get => new(Context, InternalObject.dresserTypeToIcon);

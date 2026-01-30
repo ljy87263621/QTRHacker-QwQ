@@ -13,8 +13,8 @@ public class Projectile : Entity
 		ctx.RunByHookUpdate(
 				new HackMethod(ctx.HContext,
 				ctx.GameModuleHelper.GetClrMethodBySignature("Terraria.Projectile",
-				"Terraria.Projectile.NewProjectile(Terraria.DataStructures.IEntitySource, Single, Single, Single, Single, Int32, Int32, Single, Int32, Single, Single, Single)"))
+                "Terraria.Projectile.NewProjectile(Terraria.DataStructures.IEntitySource, Single, Single, Single, Single, Int32, Int32, Single, Int32, Single, Single, Single, Terraria.NewProjectileModifier)"))
 			.Call(null)
-			.Call(true, null, null, new object[] { SpawnSource, X, Y, SpeedX, SpeedY, Type, Damage, KnockBack, Owner, ai0, ai1, ai2 }));
+			.Call(true, null, null, new object[] { SpawnSource, X, Y, SpeedX, SpeedY, Type, Damage, KnockBack, Owner, ai0, ai1, ai2, (nuint)0 }));
 	}
 }

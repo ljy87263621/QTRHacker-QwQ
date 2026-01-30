@@ -31,9 +31,9 @@ public abstract class Entity : GameObject
 		get => InternalObject.velocity;
 		set => InternalObject.velocity = value;
 	}
-	public virtual bool Active { get => InternalObject.active; set => InternalObject.active = value; }
 	public virtual bool HoneyWet { get => InternalObject.honeyWet; set => InternalObject.honeyWet = value; }
 	public virtual bool LavaWet { get => InternalObject.lavaWet; set => InternalObject.lavaWet = value; }
+	public virtual bool ShimmerWet { get => InternalObject.shimmerWet; set => InternalObject.shimmerWet = value; }
 	public virtual bool Wet { get => InternalObject.wet; set => InternalObject.wet = value; }
 	public virtual byte WetCount { get => InternalObject.wetCount; set => InternalObject.wetCount = value; }
 	public virtual int Direction { get => InternalObject.direction; set => InternalObject.direction = value; }
@@ -41,5 +41,4 @@ public abstract class Entity : GameObject
 	public virtual int Height { get => InternalObject.height; set => InternalObject.height = value; }
 	public virtual int WhoAmI { get => InternalObject.whoAmI; set => InternalObject.whoAmI = value; }
 	public virtual int Width { get => InternalObject.width; set => InternalObject.width = value; }
-	public virtual long EntityId { get => InternalObject.entityId; set => InternalObject.entityId = value; }
 }

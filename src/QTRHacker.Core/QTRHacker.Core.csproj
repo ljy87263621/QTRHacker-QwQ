@@ -10,6 +10,7 @@
 		<NoWarn>1701;1702;CA2211;NU1702</NoWarn>
 		<OutputPath>$(SolutionDir)bin\$(Configuration)\</OutputPath>
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+		<TransformOnBuild>true</TransformOnBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -49,14 +50,14 @@
 
 	<ItemGroup>
 		<Compile Update="GameObjects\Terraria\Item.ps.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Item.ps.tt</DependentUpon>
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>Item.ps.tt</DependentUpon>
 		</Compile>
 		<Compile Update="GameObjects\Terraria\NPC.ps.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>NPC.ps.tt</DependentUpon>
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>NPC.ps.tt</DependentUpon>
 		</Compile>
 		<Compile Update="GameObjects\Terraria\Player.ps.cs">
 			<DesignTime>True</DesignTime>

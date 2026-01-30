@@ -17,6 +17,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.color;
 	set => InternalObject.color = value;
+}		public virtual GameObjectArrayV<ValueTypeRedefs.Xna.Color> PhaseColors
+{
+	get => new GameObjectArrayV<ValueTypeRedefs.Xna.Color>(Context, InternalObject._phaseColors); 
+	set => InternalObject._phaseColors = value.InternalObject;
 }		public virtual bool Accessory
 {
 	get => InternalObject.accessory;
@@ -25,10 +29,6 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.autoReuse;
 	set => InternalObject.autoReuse = value;
-}		public virtual bool BeingGrabbed
-{
-	get => InternalObject.beingGrabbed;
-	set => InternalObject.beingGrabbed = value;
 }		public virtual bool Buy
 {
 	get => InternalObject.buy;
@@ -37,10 +37,6 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.buyOnce;
 	set => InternalObject.buyOnce = value;
-}		public virtual bool CanBePlacedInVanityRegardlessOfConditions
-{
-	get => InternalObject.canBePlacedInVanityRegardlessOfConditions;
-	set => InternalObject.canBePlacedInVanityRegardlessOfConditions = value;
 }		public virtual bool CartTrack
 {
 	get => InternalObject.cartTrack;
@@ -49,6 +45,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.channel;
 	set => InternalObject.channel = value;
+}		public virtual bool ChlorophyteExtractinatorConsumable
+{
+	get => InternalObject.chlorophyteExtractinatorConsumable;
+	set => InternalObject.chlorophyteExtractinatorConsumable = value;
 }		public virtual bool Consumable
 {
 	get => InternalObject.consumable;
@@ -73,10 +73,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.flame;
 	set => InternalObject.flame = value;
-}		public virtual bool Instanced
+}		public virtual bool HasVanityEffects
 {
-	get => InternalObject.instanced;
-	set => InternalObject.instanced = value;
+	get => InternalObject.hasVanityEffects;
+	set => InternalObject.hasVanityEffects = value;
 }		public virtual bool IsAShopItem
 {
 	get => InternalObject.isAShopItem;
@@ -133,6 +133,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.sentry;
 	set => InternalObject.sentry = value;
+}		public virtual bool ShootsEveryUse
+{
+	get => InternalObject.shootsEveryUse;
+	set => InternalObject.shootsEveryUse = value;
 }		public virtual bool Social
 {
 	get => InternalObject.social;
@@ -157,6 +161,14 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.wornArmor;
 	set => InternalObject.wornArmor = value;
+}		public virtual GameObjectArrayV<bool> Claw
+{
+	get => new GameObjectArrayV<bool>(Context, InternalObject.claw); 
+	set => InternalObject.claw = value.InternalObject;
+}		public virtual GameObjectArrayV<bool> Staff
+{
+	get => new GameObjectArrayV<bool>(Context, InternalObject.staff); 
+	set => InternalObject.staff = value.InternalObject;
 }		public virtual byte Dye
 {
 	get => InternalObject.dye;
@@ -165,6 +177,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.paint;
 	set => InternalObject.paint = value;
+}		public virtual byte PaintCoating
+{
+	get => InternalObject.paintCoating;
+	set => InternalObject.paintCoating = value;
 }		public virtual byte Prefix
 {
 	get => InternalObject.prefix;
@@ -189,6 +205,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.ammo;
 	set => InternalObject.ammo = value;
+}		public virtual int ArmorPenetration
+{
+	get => InternalObject.armorPenetration;
+	set => InternalObject.armorPenetration = value;
 }		public virtual int Axe
 {
 	get => InternalObject.axe;
@@ -201,6 +221,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.bodySlot;
 	set => InternalObject.bodySlot = value;
+}		public virtual int BonusTagDamage
+{
+	get => InternalObject.bonusTagDamage;
+	set => InternalObject.bonusTagDamage = value;
 }		public virtual int BuffTime
 {
 	get => InternalObject.buffTime;
@@ -209,6 +233,14 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.buffType;
 	set => InternalObject.buffType = value;
+}		public virtual int CoinGrabRange
+{
+	get => InternalObject.coinGrabRange;
+	set => InternalObject.coinGrabRange = value;
+}		public virtual int CommonMaxStack
+{
+	get => InternalObject.CommonMaxStack;
+	set => InternalObject.CommonMaxStack = value;
 }		public virtual int CreateTile
 {
 	get => InternalObject.createTile;
@@ -245,6 +277,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.eclipsePrice;
 	set => InternalObject.eclipsePrice = value;
+}		public virtual int EggnogDelay
+{
+	get => InternalObject.eggnogDelay;
+	set => InternalObject.eggnogDelay = value;
 }		public virtual int FishingPole
 {
 	get => InternalObject.fishingPole;
@@ -265,6 +301,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.healMana;
 	set => InternalObject.healMana = value;
+}		public virtual int Height
+{
+	get => InternalObject.height;
+	set => InternalObject.height = value;
 }		public virtual int HellPrice
 {
 	get => InternalObject.hellPrice;
@@ -273,14 +313,14 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.holdStyle;
 	set => InternalObject.holdStyle = value;
-}		public virtual int KeepTime
-{
-	get => InternalObject.keepTime;
-	set => InternalObject.keepTime = value;
 }		public virtual int LegSlot
 {
 	get => InternalObject.legSlot;
 	set => InternalObject.legSlot = value;
+}		public virtual int LifeGrabRange
+{
+	get => InternalObject.lifeGrabRange;
+	set => InternalObject.lifeGrabRange = value;
 }		public virtual int LifeRegen
 {
 	get => InternalObject.lifeRegen;
@@ -289,6 +329,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.mana;
 	set => InternalObject.mana = value;
+}		public virtual int ManaGrabRange
+{
+	get => InternalObject.manaGrabRange;
+	set => InternalObject.manaGrabRange = value;
 }		public virtual int ManaIncrease
 {
 	get => InternalObject.manaIncrease;
@@ -301,34 +345,26 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.mountType;
 	set => InternalObject.mountType = value;
-}		public virtual int NetID
+}		public virtual int MushroomDelay
 {
-	get => InternalObject.netID;
-	set => InternalObject.netID = value;
-}		public virtual int NoGrabDelay
-{
-	get => InternalObject.noGrabDelay;
-	set => InternalObject.noGrabDelay = value;
-}		public virtual int OwnIgnore
-{
-	get => InternalObject.ownIgnore;
-	set => InternalObject.ownIgnore = value;
-}		public virtual int OwnTime
-{
-	get => InternalObject.ownTime;
-	set => InternalObject.ownTime = value;
+	get => InternalObject.mushroomDelay;
+	set => InternalObject.mushroomDelay = value;
 }		public virtual int Pick
 {
 	get => InternalObject.pick;
 	set => InternalObject.pick = value;
+}		public virtual int PickupReplacementTime
+{
+	get => InternalObject.PickupReplacementTime;
+	set => InternalObject.PickupReplacementTime = value;
 }		public virtual int PlaceStyle
 {
 	get => InternalObject.placeStyle;
 	set => InternalObject.placeStyle = value;
-}		public virtual int PlayerIndexTheItemIsReservedFor
+}		public virtual int PotionDelay
 {
-	get => InternalObject.playerIndexTheItemIsReservedFor;
-	set => InternalObject.playerIndexTheItemIsReservedFor = value;
+	get => InternalObject.potionDelay;
+	set => InternalObject.potionDelay = value;
 }		public virtual int QueenBeePrice
 {
 	get => InternalObject.queenBeePrice;
@@ -337,6 +373,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.rare;
 	set => InternalObject.rare = value;
+}		public virtual int RestorationDelay
+{
+	get => InternalObject.restorationDelay;
+	set => InternalObject.restorationDelay = value;
 }		public virtual int ReuseDelay
 {
 	get => InternalObject.reuseDelay;
@@ -353,6 +393,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.shopSpecialCurrency;
 	set => InternalObject.shopSpecialCurrency = value;
+}		public virtual int SlotsRemainingBeforeEmergencyStackingInMultiplayer
+{
+	get => InternalObject.SlotsRemainingBeforeEmergencyStackingInMultiplayer;
+	set => InternalObject.SlotsRemainingBeforeEmergencyStackingInMultiplayer = value;
 }		public virtual int Stack
 {
 	get => InternalObject.stack;
@@ -369,22 +413,14 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.tileWand;
 	set => InternalObject.tileWand = value;
-}		public virtual int TimeLeftInWhichTheItemCannotBeTakenByEnemies
-{
-	get => InternalObject.timeLeftInWhichTheItemCannotBeTakenByEnemies;
-	set => InternalObject.timeLeftInWhichTheItemCannotBeTakenByEnemies = value;
-}		public virtual int TimeSinceItemSpawned
-{
-	get => InternalObject.timeSinceItemSpawned;
-	set => InternalObject.timeSinceItemSpawned = value;
-}		public virtual int TimeSinceTheItemHasBeenReservedForSomeone
-{
-	get => InternalObject.timeSinceTheItemHasBeenReservedForSomeone;
-	set => InternalObject.timeSinceTheItemHasBeenReservedForSomeone = value;
 }		public virtual int TooltipContext
 {
 	get => InternalObject.tooltipContext;
 	set => InternalObject.tooltipContext = value;
+}		public virtual int TreasureGrabRange
+{
+	get => InternalObject.treasureGrabRange;
+	set => InternalObject.treasureGrabRange = value;
 }		public virtual int Type
 {
 	get => InternalObject.type;
@@ -409,10 +445,26 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.value;
 	set => InternalObject.value = value;
-}		public virtual System.Nullable<System.Int32> ShopCustomPrice
+}		public virtual int Width
 {
-	get => InternalObject.shopCustomPrice;
-	set => InternalObject.shopCustomPrice = value;
+	get => InternalObject.width;
+	set => InternalObject.width = value;
+}		public virtual GameObjectArrayV<int> BodyType
+{
+	get => new GameObjectArrayV<int>(Context, InternalObject.bodyType); 
+	set => InternalObject.bodyType = value.InternalObject;
+}		public virtual GameObjectArrayV<int> CachedItemSpawnsByType
+{
+	get => new GameObjectArrayV<int>(Context, InternalObject.cachedItemSpawnsByType); 
+	set => InternalObject.cachedItemSpawnsByType = value.InternalObject;
+}		public virtual GameObjectArrayV<int> HeadType
+{
+	get => new GameObjectArrayV<int>(Context, InternalObject.headType); 
+	set => InternalObject.headType = value.InternalObject;
+}		public virtual GameObjectArrayV<int> LegType
+{
+	get => new GameObjectArrayV<int>(Context, InternalObject.legType); 
+	set => InternalObject.legType = value.InternalObject;
 }		public virtual sbyte BackSlot
 {
 	get => InternalObject.backSlot;
@@ -453,6 +505,10 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.shoeSlot;
 	set => InternalObject.shoeSlot = value;
+}		public virtual sbyte VoiceSlot
+{
+	get => InternalObject.voiceSlot;
+	set => InternalObject.voiceSlot = value;
 }		public virtual sbyte WaistSlot
 {
 	get => InternalObject.waistSlot;
@@ -473,23 +529,30 @@ namespace QTRHacker.Core.GameObjects.Terraria
 {
 	get => InternalObject.shootSpeed;
 	set => InternalObject.shootSpeed = value;
+}		public virtual float UseSoundPitch
+{
+	get => InternalObject.useSoundPitch;
+	set => InternalObject.useSoundPitch = value;
 }		public virtual string NameOverride
 {
 	get => new GameString(Context, InternalObject._nameOverride);
 	set => InternalObject._nameOverride = GameString.New(Context, value).TypedInternalObject;
+}
+public virtual GameString NameOverride_obj
+{
+	get => new GameString(Context, InternalObject._nameOverride);
+	set => InternalObject._nameOverride = value.TypedInternalObject;
 }		public virtual string BestiaryNotes
 {
 	get => new GameString(Context, InternalObject.BestiaryNotes);
 	set => InternalObject.BestiaryNotes = GameString.New(Context, value).TypedInternalObject;
-}		[Obsolete] public virtual GameObject UseSound
-{
-	get => InternalObject.UseSound;
-	set => InternalObject.UseSound = value;
-}		[Obsolete] public virtual GameObject ToolTip
-{
-	get => InternalObject.ToolTip;
-	set => InternalObject.ToolTip = value;
 }
+public virtual GameString BestiaryNotes_obj
+{
+	get => new GameString(Context, InternalObject.BestiaryNotes);
+	set => InternalObject.BestiaryNotes = value.TypedInternalObject;
+}
+
 #endregion
 	}
 }

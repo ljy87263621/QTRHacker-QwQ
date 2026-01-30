@@ -114,8 +114,8 @@ namespace GameDataExporter
 				}
 				else if (t.Type == Runtime.Heap.StringType)
 				{
-					sw.Write(string.Format("\t\t<# PROPERTY_GO_VIRTUAL(\"{0,-10}\", \"{1,-20}\"); #>\r\n", "GameString", t.Name));
-				}
+                    sw.Write(string.Format("\t\t<# PROPERTY_GO_VIRTUAL(\"{0,-10}\", \"{1,-20}\"); #>\r\n", "GameString", t.Name));
+                }
 				else
 				{
 					if (TypeRedefs.TryGetValue(typeName, out string v))

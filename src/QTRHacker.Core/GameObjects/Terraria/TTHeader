@@ -22,100 +22,119 @@ private string GetLegalName(string name)
 	return newName;
 }
 
+private string GetNewName(string name)
+{
+	string newName = GetLegalName(name);
+	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
+	return newName;
+}
+
 private void PROPERTY_VIRTUAL(string type, string newName, string name)
 {
+	type = type.Trim();
+	newName = newName.Trim();
+	name = name.Trim();
 #>public virtual <#= type #> <#= newName #>
 {
 	get => InternalObject.<#= name #>;
 	set => InternalObject.<#= name #> = value;
 }<#+
 }
-private void PROPERTY_VIRTUAL(string type, string name)
-{
-	type = type.Trim();
-	string newName = GetLegalName(name);
-	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
-	name = name.Trim();
-	PROPERTY_VIRTUAL(type, newName, name);
-}
+
+private void PROPERTY_VIRTUAL(string type, string name) =>
+	PROPERTY_VIRTUAL(type, GetNewName(name), name);
 
 private void PROPERTY_GO_VIRTUAL(string type, string newName, string name)
 {
+	type = type.Trim();
+	newName = newName.Trim();
+	name = name.Trim();
+	if (type == "GameString")
+	{
+#>public virtual string <#= newName #>
+{
+	get => new GameString(Context, InternalObject.<#= name #>);
+	set => InternalObject.<#= name #> = GameString.New(Context, value).TypedInternalObject;
+}
+public virtual GameString <#= newName #>_obj
+{
+	get => new GameString(Context, InternalObject.<#= name #>);
+	set => InternalObject.<#= name #> = value.TypedInternalObject;
+}<#+
+	}
+	else
+	{
 #>public virtual <#= type #> <#= newName #>
 {
 	get => new(Context, InternalObject.<#= name #>); 
 	set => InternalObject.<#= name #> = value.InternalObject; 
 }<#+
+	}
 }
-private void PROPERTY_GO_VIRTUAL(string type, string name)
-{
-	string newName = GetLegalName(name);
-	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
-	name = name.Trim();
-	PROPERTY_GO_VIRTUAL(type, newName, name);
-}
+
+private void PROPERTY_GO_VIRTUAL(string type, string name) =>
+	PROPERTY_GO_VIRTUAL(type, GetNewName(name), name);
 
 private void PROPERTY_GO_VIRTUAL_READONLY(string type, string newName, string name)
 {
+	type = type.Trim();
+	newName = newName.Trim();
+	name = name.Trim();
 #>public virtual <#= type #> <#= newName #>
 {
 	get => new(Context, InternalObject.<#= name #>);
 }<#+
 }
-private void PROPERTY_GO_VIRTUAL_READONLY(string type, string name)
-{
-	string newName = GetLegalName(name);
-	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
-	name = name.Trim();
-	PROPERTY_GO_VIRTUAL_READONLY(type, newName, name);
-}
 
-private void PROPERTY_STR_VIRTUAL(string newName, string name)
-{
-#>public virtual string <#= newName #>
-{
-	get => new GameString(Context, InternalObject.<#= name #>);
-	set => InternalObject.<#= name #> = GameString.New(Context, value).TypedInternalObject;
-}<#+
-}
-private void PROPERTY_STR_VIRTUAL(string name)
-{
-	string newName = GetLegalName(name);
-	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
-	name = name.Trim();
-	PROPERTY_STR_VIRTUAL(newName, name);
-}
+private void PROPERTY_GO_VIRTUAL_READONLY(string type, string name) =>
+	PROPERTY_GO_VIRTUAL_READONLY(type, GetNewName(name), name);
 
-private void PROPERTY_ARRAY_VIRTUAL(string type, string newName, string name)
+private void SKELETON_MANAGED_ARR_GET_SET(string inner, string netType, string newName, string name)
 {
-#>public virtual GameObjectArray<<#= type #>> <#= newName #>
+	inner = inner.Trim();
+	netType = netType.Trim();
+	newName = newName.Trim();
+	name = name.Trim();
+#>public virtual <#= netType #><<#= inner #>> <#= newName #>
 {
-	get => new GameObjectArray<<#= type #>>(Context, InternalObject.<#= name #>); 
+	get => new <#= netType #><<#= inner #>>(Context, InternalObject.<#= name #>); 
 	set => InternalObject.<#= name #> = value.InternalObject;
 }<#+
 }
-private void PROPERTY_ARRAY_VIRTUAL(string type, string name)
-{
-	type = type.Trim();
-	string newName = GetLegalName(name);
-	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
-	name = name.Trim();
-	PROPERTY_ARRAY_VIRTUAL(type, newName, name);
-}
 
-private void PROPERTY_ARRAYV_VIRTUAL(string type, string newName, string name)
-{
-#>public virtual GameObjectArrayV<<#= type #>> <#= newName #>
-{
-	get => new GameObjectArrayV<<#= type #>>(Context, InternalObject.<#= name #>);
-	set => InternalObject.<#= name #> = value.InternalObject;
-}<#+
-}
-private void PROPERTY_ARRAYV_VIRTUAL(string type, string name)
-{
-	type = type.Trim();
-	string newName = GetLegalName(name);
-	newName = newName[0].ToString().ToUpper() + newName.Substring(1);
-	name = name.Trim();
-	PROPERTY_ARRAYV_VIRTUAL(type, newName, name);
-}#>
+private void PROPERTY_ARRAY_VIRTUAL(string type, string newName, string name) =>
+	SKELETON_MANAGED_ARR_GET_SET(type, "GameObjectArray", newName, name);
+
+private void PROPERTY_ARRAY_VIRTUAL(string type, string name) =>
+	PROPERTY_ARRAY_VIRTUAL(type, GetNewName(name), name);
+
+private void PROPERTY_ARRAYV_VIRTUAL(string type, string newName, string name) =>
+	SKELETON_MANAGED_ARR_GET_SET(type, "GameObjectArrayV", newName, name);
+
+private void PROPERTY_ARRAYV_VIRTUAL(string type, string name) =>
+	PROPERTY_ARRAYV_VIRTUAL(type, GetNewName(name), name);
+
+private void PROPERTY_ARRAY2D_VIRTUAL(string type, string newName, string name) =>
+	SKELETON_MANAGED_ARR_GET_SET(type, "GameObjectArray2D", newName, name);
+
+private void PROPERTY_ARRAY2D_VIRTUAL(string type, string name) =>
+	PROPERTY_ARRAY2D_VIRTUAL(type, GetNewName(name), name);
+
+private void PROPERTY_ARRAY2DV_VIRTUAL(string type, string newName, string name) =>
+	SKELETON_MANAGED_ARR_GET_SET(type, "GameObjectArray2DV", newName, name);
+
+private void PROPERTY_ARRAY2DV_VIRTUAL(string type, string name) =>
+	PROPERTY_ARRAY2DV_VIRTUAL(type, GetNewName(name), name);
+
+private void PROPERTY_ARRAYMD_VIRTUAL(string type, string newName, string name) =>
+	SKELETON_MANAGED_ARR_GET_SET(type, "GameObjectArrayMD", newName, name);
+
+private void PROPERTY_ARRAYMD_VIRTUAL(string type, string name) =>
+	PROPERTY_ARRAYMD_VIRTUAL(type, GetNewName(name), name);
+
+private void PROPERTY_ARRAYMDV_VIRTUAL(string type, string newName, string name) =>
+	SKELETON_MANAGED_ARR_GET_SET(type, "GameObjectArrayMDV", newName, name);
+
+private void PROPERTY_ARRAYMDV_VIRTUAL(string type, string name) =>
+	PROPERTY_ARRAYMDV_VIRTUAL(type, GetNewName(name), name);
+#>

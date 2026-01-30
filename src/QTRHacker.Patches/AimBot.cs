@@ -100,9 +100,9 @@ namespace QTRHacker.Patches
 			return t * targetV;
 		}
 
-		private static T Find<T>(IEnumerable<T> ts, Predicate<T> condition = null) where T : Entity
+		private static NPC FindNPCCore(IEnumerable<NPC> ts, Predicate<NPC> condition = null)
 		{
-			T entity = null;
+            NPC entity = null;
 			Vector2 v = new Vector2(float.MaxValue, float.MaxValue);
 			foreach (var n in ts)
 			{
@@ -113,18 +113,32 @@ namespace QTRHacker.Patches
 					entity = n;
 			}
 			return entity;
-		}
+        }
+        private static Player FindPlayerCore(IEnumerable<Player> ts, Predicate<Player> condition = null)
+        {
+            Player entity = null;
+            Vector2 v = new Vector2(float.MaxValue, float.MaxValue);
+            foreach (var n in ts)
+            {
+                if (condition != null && !condition(n))
+                    continue;
+                Vector2 y = Main.LocalPlayer.Center - n.Center;
+                if (n.active && (v = (v.Length() > y.Length() ? y : v)) == y)
+                    entity = n;
+            }
+            return entity;
+        }
 
-		private static NPC FindNPC()
+        private static NPC FindNPC()
 		{
-			return Find(Main.npc, e =>
+			return FindNPCCore(Main.npc, e =>
 				Vector2.Distance(e.Center, Main.LocalPlayer.Center) <= MaxDistance_NPC
 				&& (!e.friendly || !HostileNPCsOnly));
 		}
 
 		private static Player FindPlayer()
 		{
-			return Find(Main.player, e =>
+			return FindPlayerCore(Main.player, e =>
 				e != Main.LocalPlayer
 				&& Vector2.Distance(e.Center, Main.LocalPlayer.Center) <= MaxDistance_Player
 				&& (e.InOpposingTeam(Main.LocalPlayer) || !HostilePlayersOnly));

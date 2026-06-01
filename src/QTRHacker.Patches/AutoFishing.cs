@@ -41,6 +41,7 @@ namespace QTRHacker.Patches
 
 		private static void DoUpdateHook_Pre()
 		{
+			ReadSharedState();
 			if (Mode == AutoFishingMode.Disabled)
 				return;
 
@@ -113,6 +114,14 @@ namespace QTRHacker.Patches
 				UseItem(); // cast
 				did = true;
 			}
+		}
+
+		private static unsafe void ReadSharedState()
+		{
+			PatchState.State* state = PatchState.Shared;
+			Mode = (AutoFishingMode)state->AutoFishing_Mode;
+			CratesOnly = PatchState.GetBool(state->AutoFishing_CratesOnly);
+			QuestItemsOnly = PatchState.GetBool(state->AutoFishing_QuestItemsOnly);
 		}
 
 		private static bool InsideScreen(int x, int y)

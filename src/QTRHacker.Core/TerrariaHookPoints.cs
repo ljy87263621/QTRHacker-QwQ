@@ -45,6 +45,14 @@ internal static class TerrariaHookPoints
 		return candidates.Max();
 	}
 
+	public static nuint GetPlayerItemCheckHookAddress(GameContext ctx)
+	{
+		nuint address = ctx.GameModuleHelper.GetFunctionAddress("Terraria.Player", "ItemCheck");
+		if (address == 0)
+			throw new InvalidOperationException("Could not locate Terraria.Player.ItemCheck native address.");
+		return address;
+	}
+
 	private static void AddCandidate(List<nuint> candidates, GameContext ctx, string pattern, int bytesToSkip)
 	{
 		var matches = AobscanHelper.Aobscan(ctx.HContext.Handle, pattern).Take(2).ToArray();

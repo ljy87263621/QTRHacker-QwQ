@@ -111,7 +111,7 @@ public class ToggleLanternNight : EventFunction
 			_ => "Enable/Disable Lantern Night",
 		};
 	}
-	public override void Enable(GameContext ctx) => ctx.LanternNight = !ctx.LanternNight;
+	public override void Enable(GameContext ctx) => ctx.Patches.ToggleLanternNight();
 }
 
 public class ToggleSlimeRain : EventFunction

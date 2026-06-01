@@ -6,7 +6,7 @@ namespace QTRHacker.Core;
 
 public static class PlayerUpdateSnippets
 {
-	private const int FloatFive = 0x40A00000;
+	private const int FloatOneThird = 0x3EAAAAAB;
 	private const int FloatTen = 0x41200000;
 
 	public static AssemblyCode InfiniteLife(GameContext ctx)
@@ -131,8 +131,23 @@ public static class PlayerUpdateSnippets
 		int tileSpeedOff = GetOffset(ctx, "Terraria.Player", "tileSpeed");
 
 		return WithLocalPlayer(ctx, "FastTileAndWallPlacingSpeed", new AssemblyCode[] {
-			(Instruction)$"mov dword ptr [eax+{wallSpeedOff}], {FloatTen}",
-			(Instruction)$"mov dword ptr [eax+{tileSpeedOff}], {FloatTen}",
+			(Instruction)$"mov dword ptr [eax+{wallSpeedOff}], {FloatOneThird}",
+			(Instruction)$"mov dword ptr [eax+{tileSpeedOff}], {FloatOneThird}",
+		});
+	}
+
+	public static AssemblyCode SuperRange(GameContext ctx)
+	{
+		nuint tileRangeX = ctx.GameModuleHelper.GetStaticFieldAddress("Terraria.Player", "tileRangeX");
+		nuint tileRangeY = ctx.GameModuleHelper.GetStaticFieldAddress("Terraria.Player", "tileRangeY");
+		int lastTileRangeXOff = GetOffset(ctx, "Terraria.Player", "lastTileRangeX");
+		int lastTileRangeYOff = GetOffset(ctx, "Terraria.Player", "lastTileRangeY");
+
+		return WithLocalPlayer(ctx, "SuperRange", new AssemblyCode[] {
+			(Instruction)$"mov dword ptr [{tileRangeX}], 4096",
+			(Instruction)$"mov dword ptr [{tileRangeY}], 4096",
+			(Instruction)$"mov dword ptr [eax+{lastTileRangeXOff}], 4096",
+			(Instruction)$"mov dword ptr [eax+{lastTileRangeYOff}], 4096",
 		});
 	}
 
@@ -140,16 +155,30 @@ public static class PlayerUpdateSnippets
 	{
 		int gridOff = GetOffset(ctx, "Terraria.Player", "rulerGrid");
 		int lineOff = GetOffset(ctx, "Terraria.Player", "rulerLine");
+		int builderAccStatusOff = GetOffset(ctx, "Terraria.Player", "builderAccStatus");
 
 		return WithLocalPlayer(ctx, "MechanicalRuler", new AssemblyCode[] {
 			(Instruction)$"mov byte ptr [eax+{gridOff}], 1",
 			(Instruction)$"mov byte ptr [eax+{lineOff}], 1",
+			SetBuilderAccVisible("MechanicalRuler_grid", builderAccStatusOff, 0),
+			SetBuilderAccVisible("MechanicalRuler_line", builderAccStatusOff, 1),
 		});
 	}
 
 	public static AssemblyCode MechanicalLens(GameContext ctx)
 	{
-		return SetBool(ctx, "MechanicalLens", "InfoAccMechShowWires", true);
+		int wiresOff = GetOffset(ctx, "Terraria.Player", "InfoAccMechShowWires");
+		int builderAccStatusOff = GetOffset(ctx, "Terraria.Player", "builderAccStatus");
+
+		return WithLocalPlayer(ctx, "MechanicalLens", new AssemblyCode[] {
+			(Instruction)$"mov byte ptr [eax+{wiresOff}], 1",
+			SetBuilderAccVisible("MechanicalLens_red", builderAccStatusOff, 4),
+			SetBuilderAccVisible("MechanicalLens_green", builderAccStatusOff, 5),
+			SetBuilderAccVisible("MechanicalLens_blue", builderAccStatusOff, 6),
+			SetBuilderAccVisible("MechanicalLens_yellow", builderAccStatusOff, 7),
+			SetBuilderAccVisible("MechanicalLens_hideAll", builderAccStatusOff, 8),
+			SetBuilderAccVisible("MechanicalLens_actuators", builderAccStatusOff, 9),
+		});
 	}
 
 	public static AssemblyCode BonusTwoSlots(GameContext ctx)
@@ -194,6 +223,19 @@ public static class PlayerUpdateSnippets
 		return WithLocalPlayer(ctx, labelPrefix, new AssemblyCode[] {
 			(Instruction)$"mov dword ptr [eax+{off}], {value}",
 		});
+	}
+
+	private static AssemblyCode SetBuilderAccVisible(string labelPrefix, int builderAccStatusOff, int index)
+	{
+		return AssemblySnippet.FromASMCode($@"
+			mov edx, [eax+{builderAccStatusOff}]
+			test edx, edx
+			jz {labelPrefix}_done
+			cmp dword ptr [edx+4], {index + 1}
+			jb {labelPrefix}_done
+			mov dword ptr [edx+{8 + index * 4}], 0
+			{labelPrefix}_done:
+		");
 	}
 
 	private static int GetOffset(GameContext ctx, string type, string field)

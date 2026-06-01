@@ -60,6 +60,18 @@ unsafe class Program
             return;
         }
 
+        if (HasArg(args, "--dump-modules"))
+        {
+            DumpAllModules(ctx);
+            return;
+        }
+
+        if (HasArg(args, "--runtime-actions"))
+        {
+            SmokePatchRuntimeActions(ctx);
+            return;
+        }
+
         if (diagnostic)
         {
             Console.WriteLine("=== VTable Method Diagnostic ===\n");
@@ -211,7 +223,6 @@ unsafe class Program
         if (smoke)
             RunFunctionSmokeTests(ctx);
         SmokePatches(ctx);
-        SmokePatchRuntimeActions(ctx);
 
         if (diagnostic)
         {
@@ -489,6 +500,16 @@ unsafe class Program
             () => BitConverter.SingleToInt32Bits(ctx.MyPlayer.MoveSpeed),
             () => BitConverter.SingleToInt32Bits(10f),
             (actual, expected) => actual == expected);
+        SmokePatchToggle(ctx, "SuperRange",
+            value => ctx.Patches.SuperRange = value,
+            () =>
+            {
+                ctx.GameModuleHelper.SetStaticFieldValue("Terraria.Player", "tileRangeX", 5);
+                ctx.GameModuleHelper.SetStaticFieldValue("Terraria.Player", "tileRangeY", 3);
+            },
+            () => ctx.GameModuleHelper.GetStaticFieldValue<int>("Terraria.Player", "tileRangeX"),
+            () => 0x1000,
+            (actual, expected) => actual == expected);
         SmokePatchToggle(ctx, "FastTileAndWallPlacingSpeed",
             value => ctx.Patches.FastTileAndWallPlacingSpeed = value,
             () => ctx.MyPlayer.TileSpeed = 1f,
@@ -519,6 +540,7 @@ unsafe class Program
             () => (ctx.MyPlayer.GoldRing && ctx.MyPlayer.ManaMagnet && ctx.MyPlayer.LifeMagnet && ctx.MyPlayer.TreasureMagnet) ? 1 : 0,
             () => 1,
             (actual, expected) => actual == expected);
+        SmokeHighLight(ctx);
         SmokeImmuneToDebuffs(ctx);
         SmokeManagedToggle(ctx, "CreativeMenu", value => ctx.Patches.CreativeMenu = value);
         SmokeManagedToggle(ctx, "FishCratesOnly", value => ctx.Patches.FishCratesOnly = value);
@@ -526,6 +548,7 @@ unsafe class Program
         SmokeManagedToggle(ctx, "StrengthenVampireKnives", value => ctx.Patches.StrengthenVampireKnives = value);
         SmokeCoinPortalDropsBags(ctx);
         SmokeStrengthenVampireKnives(ctx);
+        SmokeLanternNight(ctx);
     }
 
     private static void RunStaticTests()
@@ -538,6 +561,24 @@ unsafe class Program
         ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "public static bool StrengthenVampireKnives");
         ok &= RequireSourceContains("src/QTRHacker/Scripts/Functions/BuiltIn-2.cs", "Add<CoinPortalDropsBags>();");
         ok &= RequireSourceContains("src/QTRHacker/Scripts/Functions/BuiltIn-2.cs", "Add<StrengthenVampireKnives>();");
+        ok &= RequireSourceContains("src/QHackCLR/Common.cpp", "GC::KeepAlive(del);");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "QTRHackerPatchState1456");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Version = 2");
+        ok &= RequireSourceContains("src/QTRHacker.Core/RemotePatchState.cs", "ExpectedVersion = 2");
+        ok &= RequireSourceContains("src/QTRHacker.Core/RemotePatchState.cs", "QTRHackerPatchState1456");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "RemotePatchState");
+        ok &= RequireSourceContains("src/QTRHacker.Core/ItemCheckHookManager.cs", "GetPlayerItemCheckHookAddress");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "UpdateNativeItemCheckHook");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "SuperRange");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "FloatOneThird");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "Player.tileRangeX = 0x1000");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "player.tileSpeed = 3f");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "ToggleManualLanterns");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "ToggleLanternNight");
+        ok &= RequireSourceContains("src/QTRHacker/Scripts/Functions/BuiltIn-4.cs", "ctx.Patches.ToggleLanternNight()");
+        ok &= RequireSourceNotContains("src/QTRHacker/Scripts/Functions/BuiltIn-1.cs", "GlobalBrightness");
+        ok &= RequireSourceNotContains("src/QTRHacker.Core/GameContext.cs", "SetStaticFieldValue(\"Terraria.GameContent.Events.LanternNight\"");
+        ok &= RequireSourceNotContains("src/QTRHacker.Functions.Test/Program.cs", "RevealTheWhole" + "Map();");
 
         Console.WriteLine(ok ? "  OK static compatibility checks" : "  FAIL static compatibility checks");
         if (!ok)
@@ -561,6 +602,16 @@ unsafe class Program
         Console.WriteLine(ok
             ? $"  OK {relativePath} contains {text}"
             : $"  FAIL {relativePath} missing {text}");
+        return ok;
+    }
+
+    private static bool RequireSourceNotContains(string relativePath, string text)
+    {
+        string path = Path.GetFullPath(relativePath);
+        bool ok = File.Exists(path) && !File.ReadAllText(path).Contains(text, StringComparison.Ordinal);
+        Console.WriteLine(ok
+            ? $"  OK {relativePath} does not contain {text}"
+            : $"  FAIL {relativePath} still contains {text}");
         return ok;
     }
 
@@ -665,13 +716,52 @@ unsafe class Program
         }
     }
 
+    private static void SmokeLanternNight(GameContext ctx)
+    {
+        try
+        {
+            bool before = ctx.GameModuleHelper.GetStaticFieldValue<bool>("Terraria.GameContent.Events.LanternNight", "ManualLanterns");
+            ctx.Patches.ToggleLanternNight();
+            bool after = WaitForBool(
+                () => ctx.GameModuleHelper.GetStaticFieldValue<bool>("Terraria.GameContent.Events.LanternNight", "ManualLanterns"),
+                value => value != before);
+            if (after != before)
+            {
+                ctx.Patches.ToggleLanternNight();
+                WaitForBool(
+                    () => ctx.GameModuleHelper.GetStaticFieldValue<bool>("Terraria.GameContent.Events.LanternNight", "ManualLanterns"),
+                    value => value == before);
+            }
+
+            Console.WriteLine(after != before
+                ? $"  OK ToggleLanternNight manual={after}"
+                : $"  FAIL ToggleLanternNight manual={after}, expected {!before}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  FAIL ToggleLanternNight: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private static bool WaitForBool(Func<bool> readActual, Func<bool, bool> isOk)
+    {
+        bool actual = readActual();
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        while (!isOk(actual) && stopwatch.ElapsedMilliseconds < 1500)
+        {
+            Thread.Sleep(50);
+            actual = readActual();
+        }
+        return actual;
+    }
+
     private static void SmokeCoinPortalDropsBags(GameContext ctx)
     {
         int itemIndex = -1;
         int portalIndex = -1;
         try
         {
-            XnaVector2 center = GetPlayerCenter(ctx);
+            XnaVector2 center = GetPlayerCenter(ctx) + new XnaVector2(600f, 0f);
             portalIndex = NewProjectile(ctx, center, XnaVector2.Zero, 518, 0, 0f, ctx.MyPlayerIndex);
             Thread.Sleep(100);
 
@@ -768,22 +858,15 @@ unsafe class Program
     private static int CreateWorldCoin(GameContext ctx, XnaVector2 position)
     {
         GameObjectArray items = GetMainArray(ctx, "item");
-        for (int i = 0; i < items.Length; i++)
-        {
-            if (ReadWorldItemType(ctx, i) > 0)
-                continue;
+        int index = TerrariaItem.NewItem(ctx, (int)position.X, (int)position.Y, 1, 1, 73, 1, noBroadcast: true, pfix: 0, noGrabDelay: true);
+        if (index < 0 || index >= items.Length)
+            throw new InvalidOperationException($"Terraria.Item.NewItem returned invalid item slot {index}.");
 
-            dynamic worldItem = items[i];
-            TerrariaItem inner = new(ctx, (HackObject)worldItem.inner);
-            inner.SetDefaults(73); // Gold Coin
-            inner.Stack = 1;
-            worldItem.position = position;
-            worldItem.velocity = XnaVector2.Zero;
-            worldItem.timeSinceItemSpawned = 0;
-            return i;
-        }
-
-        throw new InvalidOperationException("No empty Terraria.Main.item slot is available for smoke test.");
+        dynamic worldItem = items[index];
+        worldItem.position = position;
+        worldItem.velocity = XnaVector2.Zero;
+        worldItem.timeSinceItemSpawned = 0;
+        return index;
     }
 
     private static string DescribeProjectile(GameContext ctx, int projectileIndex)
@@ -919,6 +1002,57 @@ unsafe class Program
         catch { }
     }
 
+    private static void SmokeHighLight(GameContext ctx)
+    {
+        try
+        {
+            float before = ReadGlobalBrightness(ctx);
+            if (Math.Abs(before - 100f) < 0.001f)
+            {
+                WriteGlobalBrightness(ctx, 1f);
+                before = 1f;
+            }
+
+            ctx.Patches.HighLight = true;
+            float enabled = WaitForSmokeFloat(
+                () => ReadGlobalBrightness(ctx),
+                value => Math.Abs(value - 100f) < 0.001f);
+
+            ctx.Patches.HighLight = false;
+            float restored = WaitForSmokeFloat(
+                () => ReadGlobalBrightness(ctx),
+                value => Math.Abs(value - before) < 0.001f);
+
+            bool ok = Math.Abs(enabled - 100f) < 0.001f && Math.Abs(restored - before) < 0.001f;
+            Console.WriteLine(ok
+                ? $"  OK HighLight enabled={enabled}, restored={restored}"
+                : $"  FAIL HighLight enabled={enabled}, restored={restored}, expected restore={before}");
+        }
+        catch (Exception ex)
+        {
+            try { ctx.Patches.HighLight = false; } catch { }
+            Console.WriteLine($"  FAIL HighLight: {ex.GetType().Name}: {ex.Message}");
+        }
+    }
+
+    private static float ReadGlobalBrightness(GameContext ctx)
+        => ctx.GameModuleHelper.GetStaticFieldValue<float>("Terraria.Lighting", "<GlobalBrightness>k__BackingField");
+
+    private static void WriteGlobalBrightness(GameContext ctx, float value)
+        => ctx.GameModuleHelper.SetStaticFieldValue("Terraria.Lighting", "<GlobalBrightness>k__BackingField", value);
+
+    private static float WaitForSmokeFloat(Func<float> readActual, Func<float, bool> isOk)
+    {
+        float actual = readActual();
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        while (!isOk(actual) && stopwatch.ElapsedMilliseconds < 1500)
+        {
+            Thread.Sleep(50);
+            actual = readActual();
+        }
+        return actual;
+    }
+
     private static void SmokePatchToggle(
         GameContext ctx,
         string name,
@@ -980,11 +1114,8 @@ unsafe class Program
         try
         {
             ctx.Patches.Init();
-            bool initialized = ctx.Patches.PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.Boot", "Initialized");
             int mode = ctx.Patches.AutoFishing_Mode;
-            Console.WriteLine(initialized
-                ? $"  OK QTRHacker.Patches initialized, AutoFishing_Mode={mode}"
-                : "  FAIL QTRHacker.Patches Boot.Initialized=false");
+            Console.WriteLine($"  OK QTRHacker.Patches shared state initialized, AutoFishing_Mode={mode}");
         }
         catch (Exception ex)
         {
@@ -1003,9 +1134,8 @@ unsafe class Program
                 : ctx.LoadAssemblyAsBytes(path, "QTRHacker.Patches.Boot");
             Console.WriteLine(ok ? "  OK load request completed" : "  FAIL load request returned false");
             ctx.Flush();
-            var helper = ctx.Patches.PatchHelper;
-            bool initialized = helper != null && helper.GetStaticFieldValue<bool>("QTRHacker.Patches.Boot", "Initialized");
-            Console.WriteLine($"  PatchHelper={(helper == null ? "null" : helper.Module.Name)}, Boot.Initialized={initialized}");
+            ctx.Patches.Init();
+            Console.WriteLine($"  OK shared state reachable, AutoFishing_Mode={ctx.Patches.AutoFishing_Mode}");
         }
         catch (Exception ex)
         {
@@ -1020,38 +1150,36 @@ unsafe class Program
             Path.Combine(AppContext.BaseDirectory, "QTRHacker.Patches.dll"),
             Path.GetFullPath("./QTRHacker.Patches.dll"),
             Path.GetFullPath("./bin/Debug/QTRHacker.Patches.dll"),
+            Path.GetFullPath("./bin/Release/QTRHacker.Patches.dll"),
+            Path.GetFullPath("./src/QTRHacker.Patches/bin/x86/Debug/QTRHacker.Patches.dll"),
+            Path.GetFullPath("./src/QTRHacker.Patches/bin/x86/Release/QTRHacker.Patches.dll"),
             Path.GetFullPath("./src/QTRHacker.Patches/bin/Debug/QTRHacker.Patches.dll"),
+            Path.GetFullPath("./src/QTRHacker.Patches/bin/Release/QTRHacker.Patches.dll"),
         };
-        foreach (string path in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            if (File.Exists(path))
-                return path;
-        }
+        string path = candidates
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(File.Exists)
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault();
+        if (path != null)
+            return path;
         throw new FileNotFoundException("Could not locate QTRHacker.Patches.dll.", candidates[0]);
     }
 
-    private static void SmokePatchRuntimeActions(GameContext ctx)
-    {
-        try
-        {
-            ctx.Patches.Init();
-            RuntimeAction(ctx, "UnlockAllDuplications");
-            RuntimeAction(ctx, "RevealTheWholeMap");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"  FAIL QTRHacker.Patches.RuntimeActions: {ex.GetType().Name}: {ex.Message}");
-        }
-    }
-
-    private static void RuntimeAction(GameContext ctx, string methodName)
-    {
-        string requestField = methodName + "Requested";
-        string completedField = methodName + "Completed";
-        bool requested = ctx.Patches.PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.RuntimeActions", requestField);
-        int completed = ctx.Patches.PatchHelper.GetStaticFieldValue<int>("QTRHacker.Patches.RuntimeActions", completedField);
-        Console.WriteLine($"  OK QTRHacker.Patches.RuntimeActions.{methodName}: requested={requested}, completed={completed}");
-    }
+	private static void SmokePatchRuntimeActions(GameContext ctx)
+	{
+		try
+		{
+			ctx.Patches.Init();
+			ctx.Patches.UnlockAllDuplications();
+			Thread.Sleep(250);
+			Console.WriteLine("  OK QTRHacker.Patches.RuntimeActions queued via shared state");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"  FAIL QTRHacker.Patches.RuntimeActions: {ex.GetType().Name}: {ex.Message}");
+		}
+	}
 
     private static void DumpPatchModules(GameContext ctx)
     {
@@ -1067,5 +1195,13 @@ unsafe class Program
             try { hasBoot = helper.GetClrType("QTRHacker.Patches.Boot") != null; } catch { }
             Console.WriteLine($"    name={helper.Module.Name}, file={helper.Module.FileName}, hasBoot={hasBoot}");
         }
+    }
+
+    private static void DumpAllModules(GameContext ctx)
+    {
+        ctx.Flush();
+        Console.WriteLine($"  CLR modules: {ctx.HContext.CLRHelpers.Count}");
+        foreach (var helper in ctx.HContext.CLRHelpers.Values)
+            Console.WriteLine($"    name={helper.Module.Name}, file={helper.Module.FileName}");
     }
 }

@@ -30,7 +30,7 @@ namespace QTRHacker.Patches
 		public static bool HostilePlayersOnly = true;
 		static AimBot()
 		{
-			HooksDef.DoUpdateHook.Pre += DoUpdateHook_Pre;
+			Boot.OnGameUpdate += DoUpdateHook_Pre;
 		}
 
 		private static Entity GetTarget()
@@ -58,7 +58,7 @@ namespace QTRHacker.Patches
 		{
 			if (Mode == AimBotMode.Disabled)
 				return;
-			if (!Main.hasFocus)
+			if (!GameFocusHelper.HasFocus)
 				return;
 			Entity p = GetTarget();
 			if (p is null)

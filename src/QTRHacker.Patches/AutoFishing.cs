@@ -18,7 +18,7 @@ namespace QTRHacker.Patches
 		}
 		static AutoFishing()
 		{
-			HooksDef.DoUpdateHook.Pre += DoUpdateHook_Pre;
+			Boot.OnGameUpdate += DoUpdateHook_Pre;
 		}
 #pragma warning disable IDE0044 // Add readonly modifier
 		private static AutoFishingMode Mode = AutoFishingMode.Disabled;
@@ -102,7 +102,7 @@ namespace QTRHacker.Patches
 			}
 
 			if (PlayerInput.MouseInfo.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed
-				&& !did && Ready && Main.hasFocus && InsideScreen(PlayerInput.MouseInfo.X, PlayerInput.MouseInfo.Y))
+				&& !did && Ready && GameFocusHelper.HasFocus && InsideScreen(PlayerInput.MouseInfo.X, PlayerInput.MouseInfo.Y))
 			{
 				Ready = false;
 			}

@@ -26,10 +26,10 @@ namespace QTRHacker.Patches
 				return;
 			try
 			{
+				RuntimeHelpers.RunClassConstructor(typeof(PatchState).TypeHandle);
 				InitializePatchTypes();
 
 				StartUpdateTimer();
-				HooksDef.DoUpdateHook.Post += EnsureGameInterfaceLayer;
 				EnsureGameInterfaceLayer();
 				Initialized = true;
 			}
@@ -104,7 +104,6 @@ namespace QTRHacker.Patches
 					return true;
 				}, InterfaceScaleType.Game));
 				GameLayerInstalled = true;
-				HooksDef.DoUpdateHook.Post -= EnsureGameInterfaceLayer;
 			}
 			catch (Exception e)
 			{

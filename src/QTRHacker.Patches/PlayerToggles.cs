@@ -30,10 +30,13 @@ namespace QTRHacker.Patches
 		public static bool EnableAllRecipes;
 		public static bool StrengthenVampireKnives;
 		private static int CreativeMenuOriginalDifficulty = -1;
+		private static float OriginalGlobalBrightness = float.NaN;
 		private static bool[] ProcessedVampireKnives = Array.Empty<bool>();
 
 		public static void Apply()
 		{
+			ReadSharedState();
+			ApplyHighLight();
 			if (Main.gameMenu)
 			{
 				RestoreCreativeMenuDifficulty();
@@ -47,6 +50,11 @@ namespace QTRHacker.Patches
 				return;
 			}
 
+			Apply(player, normalizePlacementSpeed: true);
+		}
+
+		private static void Apply(Player player, bool normalizePlacementSpeed)
+		{
 			ApplyCreativeMenu(player);
 			if (InfiniteLife && player.statLifeMax2 > 0)
 				player.statLife = player.statLifeMax2;
@@ -88,31 +96,56 @@ namespace QTRHacker.Patches
 				ForceFishingCrates();
 			if (BonusTwoSlots)
 				player.extraAccessory = true;
-			if (HighLight)
-				Lighting.GlobalBrightness = 100f;
 			if (SuperRange)
 			{
 				Player.tileRangeX = 0x1000;
 				Player.tileRangeY = 0x1000;
+				player.lastTileRangeX = 0x1000;
+				player.lastTileRangeY = 0x1000;
 			}
 			if (FastTileAndWallPlacingSpeed)
 			{
-				player.wallSpeed = 1f / 3f;
-				player.tileSpeed = 1f / 3f;
+				if (normalizePlacementSpeed)
+				{
+					player.wallSpeed = 1f / 3f;
+					player.tileSpeed = 1f / 3f;
+				}
+				else
+				{
+					player.wallSpeed = 3f;
+					player.tileSpeed = 3f;
+				}
 			}
 			if (MechanicalRuler)
 			{
 				player.rulerGrid = true;
 				player.rulerLine = true;
+				SetBuilderAccVisible(player, 0);
+				SetBuilderAccVisible(player, 1);
 			}
 			if (MechanicalLens)
+			{
 				player.InfoAccMechShowWires = true;
+				SetBuilderAccVisible(player, 4);
+				SetBuilderAccVisible(player, 5);
+				SetBuilderAccVisible(player, 6);
+				SetBuilderAccVisible(player, 7);
+				SetBuilderAccVisible(player, 9);
+				SetBuilderAccVisible(player, 8);
+			}
 			if (RightClickToTP)
 				TryTeleportFromFullscreenMap(player);
 			if (EnableAllRecipes)
 				KeepAllRecipesAvailable();
 			if (StrengthenVampireKnives)
 				StrengthenOwnedVampireKnives();
+		}
+
+		private static void SetBuilderAccVisible(Player player, int index)
+		{
+			if (player.builderAccStatus == null || index < 0 || index >= player.builderAccStatus.Length)
+				return;
+			player.builderAccStatus[index] = 0;
 		}
 
 		private static void ApplyCreativeMenu(Player player)
@@ -140,6 +173,27 @@ namespace QTRHacker.Patches
 			CreativeMenuOriginalDifficulty = -1;
 		}
 
+		private static void ApplyHighLight()
+		{
+			if (!HighLight)
+			{
+				RestoreHighLight();
+				return;
+			}
+
+			if (float.IsNaN(OriginalGlobalBrightness))
+				OriginalGlobalBrightness = Lighting.GlobalBrightness;
+			Lighting.GlobalBrightness = 100f;
+		}
+
+		private static void RestoreHighLight()
+		{
+			if (float.IsNaN(OriginalGlobalBrightness))
+				return;
+			Lighting.GlobalBrightness = OriginalGlobalBrightness;
+			OriginalGlobalBrightness = float.NaN;
+		}
+
 		private static void TopOffAmmo(Player player)
 		{
 			if (player.inventory == null)
@@ -154,6 +208,33 @@ namespace QTRHacker.Patches
 			}
 		}
 
+		private static unsafe void ReadSharedState()
+		{
+			PatchState.State* state = PatchState.Shared;
+			InfiniteLife = PatchState.GetBool(state->InfiniteLife);
+			InfiniteMana = PatchState.GetBool(state->InfiniteMana);
+			InfiniteOxygen = PatchState.GetBool(state->InfiniteOxygen);
+			InfiniteMinion = PatchState.GetBool(state->InfiniteMinion);
+			InfiniteAmmo = PatchState.GetBool(state->InfiniteAmmo);
+			InfiniteFlyTime = PatchState.GetBool(state->InfiniteFlyTime);
+			CreativeMenu = PatchState.GetBool(state->CreativeMenu);
+			ImmuneToDebuffs = PatchState.GetBool(state->ImmuneToDebuffs);
+			SlowFall = PatchState.GetBool(state->SlowFall);
+			FastSpeed = PatchState.GetBool(state->FastSpeed);
+			SuperGrabRange = PatchState.GetBool(state->SuperGrabRange);
+			CoinPortalDropsBags = PatchState.GetBool(state->CoinPortalDropsBags);
+			FishCratesOnly = PatchState.GetBool(state->FishCratesOnly);
+			BonusTwoSlots = PatchState.GetBool(state->BonusTwoSlots);
+			HighLight = PatchState.GetBool(state->HighLight);
+			SuperRange = PatchState.GetBool(state->SuperRange);
+			FastTileAndWallPlacingSpeed = PatchState.GetBool(state->FastTileAndWallPlacingSpeed);
+			MechanicalRuler = PatchState.GetBool(state->MechanicalRuler);
+			MechanicalLens = PatchState.GetBool(state->MechanicalLens);
+			RightClickToTP = PatchState.GetBool(state->RightClickToTP);
+			EnableAllRecipes = PatchState.GetBool(state->EnableAllRecipes);
+			StrengthenVampireKnives = PatchState.GetBool(state->StrengthenVampireKnives);
+		}
+
 		private static void TryTeleportFromFullscreenMap(Player player)
 		{
 			if (!Main.mapFullscreen || !Main.mouseRight || !Main.mouseRightRelease)
@@ -161,8 +242,8 @@ namespace QTRHacker.Patches
 
 			Main.mapFullscreen = false;
 			Main.mouseRightRelease = false;
-			float targetX = ((Main.screenWidth / 2f - Main.mouseX) / Main.mapFullscreenScale - Main.mapFullscreenPos.X) * 16f;
-			float targetY = ((Main.screenHeight / 2f - Main.mouseY) / Main.mapFullscreenScale - Main.mapFullscreenPos.Y) * 16f;
+			float targetX = ((Main.mouseX - Main.screenWidth / 2f) / Main.mapFullscreenScale + Main.mapFullscreenPos.X) * 16f;
+			float targetY = ((Main.mouseY - Main.screenHeight / 2f) / Main.mapFullscreenScale + Main.mapFullscreenPos.Y) * 16f;
 			player.position.X = targetX;
 			player.position.Y = targetY;
 		}

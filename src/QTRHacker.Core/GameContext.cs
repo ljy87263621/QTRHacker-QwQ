@@ -195,7 +195,11 @@ public class GameContext : IDisposable
 	public bool LanternNight
 	{
 		get => GameModuleHelper.GetStaticFieldValue<bool>("Terraria.GameContent.Events.LanternNight", "ManualLanterns");
-		set => GameModuleHelper.SetStaticFieldValue("Terraria.GameContent.Events.LanternNight", "ManualLanterns", value);
+		set
+		{
+			if (value != LanternNight)
+				Patches.ToggleLanternNight();
+		}
 	}
 
 	public bool SlimeRain
@@ -346,6 +350,9 @@ public class GameContext : IDisposable
 
 		nuint pData = stream.IP; stream.Write(data, (uint)data.Length);
 		nuint pTypeStr = stream.IP; stream.WriteWCHARArray(typeName);
+		nuint pAssemblyResult = stream.IP; stream.Write<nuint>(0);
+		nuint pTypeResult = stream.IP; stream.Write<nuint>(0);
+		nuint pInstanceResult = stream.IP; stream.Write<nuint>(0);
 		nuint byteMT = HContext.Runtime.BaseClassLibrary.GetTypeByName("System.Byte").ClrHandle;
 		nuint jitHelper_typeof = JitHelpersManager.GetJitHelperAddress("CORINFO_HELP_TYPEHANDLE_TO_RUNTIMETYPE");
 		// The key is to find this jit helper, so we can create an array of bytes.
@@ -386,17 +393,23 @@ public class GameContext : IDisposable
 				// LOOP END
 				(Instruction)$"mov ecx, esi",
 				(Instruction)$"call {load}",
+				(Instruction)$"mov [{pAssemblyResult}], eax",
 				(Instruction)$"push eax",
 				AssemblySnippet.FromConstructString(HContext, pTypeStr),
 				(Instruction)$"mov edx, eax",
 				(Instruction)$"pop ecx",
 				(Instruction)$"call {getType}",
+				(Instruction)$"mov [{pTypeResult}], eax",
 				(Instruction)$"mov ecx, eax",
 				(Instruction)$"call {createInstance}",
+				(Instruction)$"mov [{pInstanceResult}], eax",
 		});
 		bool result = RunByHookUpdate(thCode, (uint)data.Length + 0x1000);
 		Flush();
-		return result;
+		return result
+			&& HContext.DataAccess.Read<nuint>(pAssemblyResult) != 0
+			&& HContext.DataAccess.Read<nuint>(pTypeResult) != 0
+			&& HContext.DataAccess.Read<nuint>(pInstanceResult) != 0;
 	}
 
 	public unsafe bool LoadAssemblyFrom(string assemblyFile, string typeName)
@@ -408,6 +421,9 @@ public class GameContext : IDisposable
 
 		nuint pAssemblyPath = stream.IP; stream.WriteWCHARArray(fullPath);
 		nuint pTypeStr = stream.IP; stream.WriteWCHARArray(typeName);
+		nuint pAssemblyResult = stream.IP; stream.Write<nuint>(0);
+		nuint pTypeResult = stream.IP; stream.Write<nuint>(0);
+		nuint pInstanceResult = stream.IP; stream.Write<nuint>(0);
 
 		nuint loadFrom = HContext.BCLHelper.GetFunctionAddress("System.Reflection.Assembly",
 			m => m.Signature == "System.Reflection.Assembly.LoadFrom(System.String)");
@@ -421,16 +437,22 @@ public class GameContext : IDisposable
 				AssemblySnippet.FromConstructString(HContext, pAssemblyPath),
 				(Instruction)$"mov ecx, eax",
 				(Instruction)$"call {loadFrom}",
+				(Instruction)$"mov [{pAssemblyResult}], eax",
 				(Instruction)$"push eax",
 				AssemblySnippet.FromConstructString(HContext, pTypeStr),
 				(Instruction)$"mov edx, eax",
 				(Instruction)$"pop ecx",
 				(Instruction)$"call {getType}",
+				(Instruction)$"mov [{pTypeResult}], eax",
 				(Instruction)$"mov ecx, eax",
 				(Instruction)$"call {createInstance}",
+				(Instruction)$"mov [{pInstanceResult}], eax",
 		});
 		bool result = RunByHookUpdate(thCode, (uint)allocSize);
 		Flush();
-		return result;
+		return result
+			&& HContext.DataAccess.Read<nuint>(pAssemblyResult) != 0
+			&& HContext.DataAccess.Read<nuint>(pTypeResult) != 0
+			&& HContext.DataAccess.Read<nuint>(pInstanceResult) != 0;
 	}
 }

@@ -282,9 +282,6 @@ public class HighLight : BaseFunction
 	public override void Disable(GameContext ctx)
 	{
 		ctx.Patches.HighLight = false;
-		// Restore default GlobalBrightness (1.2f = 0x3F99999A)
-		nuint globalBrightnessAddr = ctx.GameModuleHelper.GetStaticFieldAddress("Terraria.Lighting", "GlobalBrightness");
-		Write<float>(ctx, globalBrightnessAddr, 1.2f);
 		IsEnabled = false;
 	}
 }

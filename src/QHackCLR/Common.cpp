@@ -136,6 +136,8 @@ namespace QHackCLR {
 				this->ModuleHelper->SOSDac->TraverseModuleMap(type, NativeHandle, func, nullptr);
 			}
 			catch (Exception^) {}
+			GC::KeepAlive(del);
+			GC::KeepAlive(ano);
 			Generic::List<ClrType^>^ types = gcnew Generic::List<ClrType^>();
 			for each (auto mt in holder)
 				types->Add(this->ModuleHelper->TypeFactory->GetClrType(UIntPtr(mt)));

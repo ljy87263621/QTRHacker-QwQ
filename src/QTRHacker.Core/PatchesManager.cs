@@ -56,12 +56,14 @@ public sealed class PatchesManager
 		}
 	}
 	public GameContext Context { get; }
+	private readonly RemotePatchState State;
 	public PatchesManager(GameContext context)
 	{
 		Context = context;
+		State = new RemotePatchState(context);
 	}
 
-	public bool IsInitialized => PatchHelper != null;
+	public bool IsInitialized => State.IsInitialized;
 
 	public void Init()
 	{
@@ -71,11 +73,9 @@ public sealed class PatchesManager
 		if (!Context.LoadAssemblyAsBytes(patchesPath, "QTRHacker.Patches.Boot")
 			&& !Context.LoadAssemblyFrom(patchesPath, "QTRHacker.Patches.Boot"))
 			throw new InvalidOperationException("Couldn't load patches");
-		WaitForPatchHelper();
-		if (PatchHelper == null)
-			throw new InvalidOperationException("QTRHacker.Patches was loaded but could not be found in the CLR module list.");
-		if (!WaitForBootInitialized())
-			throw new InvalidOperationException("QTRHacker.Patches boot did not complete initialization.");
+		if (State.IsInitialized || WaitForSharedStateInitialized())
+			return;
+		throw new InvalidOperationException("QTRHacker.Patches boot did not complete initialization.");
 	}
 
 	public void UnlockAllDuplications()
@@ -88,38 +88,33 @@ public sealed class PatchesManager
 		QueueRuntimeAction("RevealTheWholeMapRequested");
 	}
 
+	public void ToggleLanternNight()
+	{
+		QueueRuntimeAction("ToggleLanternNightRequested");
+	}
+
 	private void QueueRuntimeAction(string requestFieldName)
 	{
 		Init();
+		if (Enum.TryParse(requestFieldName, out RemotePatchState.Field field))
+		{
+			State.SetBool(field, true);
+			return;
+		}
 		PatchHelper.SetStaticFieldValue("QTRHacker.Patches.RuntimeActions", requestFieldName, true);
 	}
 
-	private void WaitForPatchHelper()
+	private bool WaitForSharedStateInitialized()
 	{
-		for (int i = 0; i < 100; i++)
+		try
 		{
-			Context.Flush();
-			if (PatchHelper != null)
-				return;
-			Thread.Sleep(100);
+			State.EnsureInitialized();
+			return true;
 		}
-	}
-
-	private bool WaitForBootInitialized()
-	{
-		for (int i = 0; i < 100; i++)
+		catch
 		{
-			try
-			{
-				Context.Flush();
-				var helper = PatchHelper;
-				if (helper != null && helper.GetStaticFieldValue<bool>("QTRHacker.Patches.Boot", "Initialized"))
-					return true;
-			}
-			catch { }
-			Thread.Sleep(100);
+			return false;
 		}
-		return false;
 	}
 
 	private static bool HasBootType(QHackLib.CLRHelper helper)
@@ -156,14 +151,18 @@ public sealed class PatchesManager
 			Path.GetFullPath("./QTRHacker.Patches.dll"),
 			Path.GetFullPath("./bin/Debug/QTRHacker.Patches.dll"),
 			Path.GetFullPath("./bin/Release/QTRHacker.Patches.dll"),
+			Path.GetFullPath("./src/QTRHacker.Patches/bin/x86/Debug/QTRHacker.Patches.dll"),
+			Path.GetFullPath("./src/QTRHacker.Patches/bin/x86/Release/QTRHacker.Patches.dll"),
 			Path.GetFullPath("./src/QTRHacker.Patches/bin/Debug/QTRHacker.Patches.dll"),
 			Path.GetFullPath("./src/QTRHacker.Patches/bin/Release/QTRHacker.Patches.dll"),
 		};
-		foreach (string path in candidates.Distinct(StringComparer.OrdinalIgnoreCase))
-		{
-			if (File.Exists(path))
-				return path;
-		}
+		string path = candidates
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.Where(File.Exists)
+			.OrderByDescending(File.GetLastWriteTimeUtc)
+			.FirstOrDefault();
+		if (path != null)
+			return path;
 		throw new FileNotFoundException("Could not locate QTRHacker.Patches.dll.", candidates[0]);
 	}
 
@@ -193,52 +192,52 @@ public sealed class PatchesManager
 
 	public bool AimBot_HostileNPCsOnly
 	{
-		get => PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.AimBot", "HostileNPCsOnly");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AimBot", "HostileNPCsOnly", value);
+		get { Init(); return State.GetBool(RemotePatchState.Field.AimBot_HostileNPCsOnly); }
+		set { Init(); State.SetBool(RemotePatchState.Field.AimBot_HostileNPCsOnly, value); }
 	}
 	public bool AimBot_HostilePlayersOnly
 	{
-		get => PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.AimBot", "HostilePlayersOnly");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AimBot", "HostilePlayersOnly", value);
+		get { Init(); return State.GetBool(RemotePatchState.Field.AimBot_HostilePlayersOnly); }
+		set { Init(); State.SetBool(RemotePatchState.Field.AimBot_HostilePlayersOnly, value); }
 	}
 	public float AimBot_MaxDistance_NPC
 	{
-		get => PatchHelper.GetStaticFieldValue<float>("QTRHacker.Patches.AimBot", "MaxDistance_NPC");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AimBot", "MaxDistance_NPC", value);
+		get { Init(); return State.GetFloat(RemotePatchState.Field.AimBot_MaxDistance_NPC); }
+		set { Init(); State.SetFloat(RemotePatchState.Field.AimBot_MaxDistance_NPC, value); }
 	}
 	public float AimBot_MaxDistance_Player
 	{
-		get => PatchHelper.GetStaticFieldValue<float>("QTRHacker.Patches.AimBot", "MaxDistance_Player");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AimBot", "MaxDistance_Player", value);
+		get { Init(); return State.GetFloat(RemotePatchState.Field.AimBot_MaxDistance_Player); }
+		set { Init(); State.SetFloat(RemotePatchState.Field.AimBot_MaxDistance_Player, value); }
 	}
 	public int AimBot_TargetedPlayerIndex
 	{
-		get => PatchHelper.GetStaticFieldValue<int>("QTRHacker.Patches.AimBot", "TargetedPlayerIndex");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AimBot", "TargetedPlayerIndex", value);
+		get { Init(); return State.GetInt(RemotePatchState.Field.AimBot_TargetedPlayerIndex); }
+		set { Init(); State.SetInt(RemotePatchState.Field.AimBot_TargetedPlayerIndex, value); }
 	}
 	/// <summary>
 	/// This is an enum
 	/// </summary>
 	public int AimBot_Mode
 	{
-		get => PatchHelper.GetStaticFieldValue<int>("QTRHacker.Patches.AimBot", "Mode");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AimBot", "Mode", value);
+		get { Init(); return State.GetInt(RemotePatchState.Field.AimBot_Mode); }
+		set { Init(); State.SetInt(RemotePatchState.Field.AimBot_Mode, value); }
 	}
 
 	public int AutoFishing_Mode
 	{
-		get => PatchHelper.GetStaticFieldValue<int>("QTRHacker.Patches.AutoFishing", "Mode");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AutoFishing", "Mode", value);
+		get { Init(); return State.GetInt(RemotePatchState.Field.AutoFishing_Mode); }
+		set { Init(); State.SetInt(RemotePatchState.Field.AutoFishing_Mode, value); }
 	}
 	public bool AutoFishing_CratesOnly
 	{
-		get => PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.AutoFishing", "CratesOnly");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AutoFishing", "CratesOnly", value);
+		get { Init(); return State.GetBool(RemotePatchState.Field.AutoFishing_CratesOnly); }
+		set { Init(); State.SetBool(RemotePatchState.Field.AutoFishing_CratesOnly, value); }
 	}
 	public bool AutoFishing_QuestItemsOnly
 	{
-		get => PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.AutoFishing", "QuestItemsOnly");
-		set => PatchHelper.SetStaticFieldValue("QTRHacker.Patches.AutoFishing", "QuestItemsOnly", value);
+		get { Init(); return State.GetBool(RemotePatchState.Field.AutoFishing_QuestItemsOnly); }
+		set { Init(); State.SetBool(RemotePatchState.Field.AutoFishing_QuestItemsOnly, value); }
 	}
 
 	public bool InfiniteLife { get => GetPlayerToggle(nameof(InfiniteLife)); set => SetPlayerToggle(nameof(InfiniteLife), value); }
@@ -267,12 +266,37 @@ public sealed class PatchesManager
 	private bool GetPlayerToggle(string fieldName)
 	{
 		Init();
-		return PatchHelper.GetStaticFieldValue<bool>("QTRHacker.Patches.PlayerToggles", fieldName);
+		return State.GetBool(Enum.Parse<RemotePatchState.Field>(fieldName));
 	}
 
 	private void SetPlayerToggle(string fieldName, bool value)
 	{
 		Init();
-		PatchHelper.SetStaticFieldValue("QTRHacker.Patches.PlayerToggles", fieldName, value);
+		State.SetBool(Enum.Parse<RemotePatchState.Field>(fieldName), value);
+		UpdateNativeItemCheckHook(fieldName, value);
+	}
+
+	private void UpdateNativeItemCheckHook(string fieldName, bool enabled)
+	{
+		if (!TryCreateItemCheckSnippet(fieldName, out var code))
+			return;
+		if (enabled)
+			ItemCheckHookManager.Register(Context, fieldName, code);
+		else
+			ItemCheckHookManager.Unregister(fieldName);
+	}
+
+	private bool TryCreateItemCheckSnippet(string fieldName, out QHackLib.Assemble.AssemblyCode code)
+	{
+		code = fieldName switch
+		{
+			nameof(InfiniteMinion) => PlayerUpdateSnippets.InfiniteMinion(Context),
+			nameof(SuperRange) => PlayerUpdateSnippets.SuperRange(Context),
+			nameof(FastTileAndWallPlacingSpeed) => PlayerUpdateSnippets.FastTileAndWallPlacingSpeed(Context),
+			nameof(MechanicalRuler) => PlayerUpdateSnippets.MechanicalRuler(Context),
+			nameof(MechanicalLens) => PlayerUpdateSnippets.MechanicalLens(Context),
+			_ => null
+		};
+		return code != null;
 	}
 }

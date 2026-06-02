@@ -55,6 +55,7 @@ namespace QTRHacker.Patches
 
 		private static void Apply(Player player, bool normalizePlacementSpeed)
 		{
+			ApplyPlayerPropertyInfluenceOverrides(player);
 			ApplyCreativeMenu(player);
 			if (InfiniteLife && player.statLifeMax2 > 0)
 				player.statLife = player.statLifeMax2;
@@ -139,6 +140,110 @@ namespace QTRHacker.Patches
 				KeepAllRecipesAvailable();
 			if (StrengthenVampireKnives)
 				StrengthenOwnedVampireKnives();
+			ApplyPlayerPropertyFinalOverrides(player);
+		}
+
+		public static void ApplyPlayerPropertyOverrides(Player player)
+		{
+			ApplyPlayerPropertyInfluenceOverrides(player);
+			ApplyPlayerPropertyFinalOverrides(player);
+		}
+
+		public static unsafe void ApplyPlayerPropertyInfluenceOverrides(Player player)
+		{
+			PatchState.State* state = PatchState.Shared;
+
+			if (PatchState.GetBool(state->Override_CoinLuck_Enabled))
+				player.coinLuck = state->Override_CoinLuck_Value;
+			if (PatchState.GetBool(state->Override_KiteLuckLevel_Enabled))
+				player.kiteLuckLevel = ClampByte(state->Override_KiteLuckLevel_Value);
+			if (PatchState.GetBool(state->Override_LadyBugLuckTimeLeft_Enabled))
+				player.ladyBugLuckTimeLeft = state->Override_LadyBugLuckTimeLeft_Value;
+			if (PatchState.GetBool(state->Override_BrokenMirrorBadLuckTime_Enabled))
+				player.brokenMirrorBadLuckTime = state->Override_BrokenMirrorBadLuckTime_Value;
+		}
+
+		public static unsafe void ApplyPlayerPropertyFinalOverrides(Player player)
+		{
+			PatchState.State* state = PatchState.Shared;
+
+			if (PatchState.GetBool(state->Override_StatDefense_Enabled))
+				player.statDefense = state->Override_StatDefense_Value;
+			if (PatchState.GetBool(state->Override_ArmorPenetration_Enabled))
+				player.armorPenetration = state->Override_ArmorPenetration_Value;
+			if (PatchState.GetBool(state->Override_MeleeCrit_Enabled))
+				player.meleeCrit = state->Override_MeleeCrit_Value;
+			if (PatchState.GetBool(state->Override_RangedCrit_Enabled))
+				player.rangedCrit = state->Override_RangedCrit_Value;
+			if (PatchState.GetBool(state->Override_MagicCrit_Enabled))
+				player.magicCrit = state->Override_MagicCrit_Value;
+			if (PatchState.GetBool(state->Override_MeleeDamage_Enabled))
+				player.meleeDamage = state->Override_MeleeDamage_Value;
+			if (PatchState.GetBool(state->Override_RangedDamage_Enabled))
+				player.rangedDamage = state->Override_RangedDamage_Value;
+			if (PatchState.GetBool(state->Override_MagicDamage_Enabled))
+				player.magicDamage = state->Override_MagicDamage_Value;
+			if (PatchState.GetBool(state->Override_MinionDamage_Enabled))
+				player.minionDamage = state->Override_MinionDamage_Value;
+			if (PatchState.GetBool(state->Override_RocketDamage_Enabled))
+				player.rocketDamage = state->Override_RocketDamage_Value;
+			if (PatchState.GetBool(state->Override_Endurance_Enabled))
+				player.endurance = state->Override_Endurance_Value;
+			if (PatchState.GetBool(state->Override_Thorns_Enabled))
+				player.thorns = state->Override_Thorns_Value;
+
+			if (PatchState.GetBool(state->Override_MoveSpeed_Enabled))
+				player.moveSpeed = state->Override_MoveSpeed_Value;
+			if (PatchState.GetBool(state->Override_MaxRunSpeed_Enabled))
+				player.maxRunSpeed = state->Override_MaxRunSpeed_Value;
+			if (PatchState.GetBool(state->Override_AccRunSpeed_Enabled))
+				player.accRunSpeed = state->Override_AccRunSpeed_Value;
+			if (PatchState.GetBool(state->Override_RunAcceleration_Enabled))
+				player.runAcceleration = state->Override_RunAcceleration_Value;
+			if (PatchState.GetBool(state->Override_JumpSpeedBoost_Enabled))
+				player.jumpSpeedBoost = state->Override_JumpSpeedBoost_Value;
+			if (PatchState.GetBool(state->Override_WingTime_Enabled))
+				player.wingTime = state->Override_WingTime_Value;
+			if (PatchState.GetBool(state->Override_WingTimeMax_Enabled))
+				player.wingTimeMax = state->Override_WingTimeMax_Value;
+			if (PatchState.GetBool(state->Override_RocketTime_Enabled))
+				player.rocketTime = state->Override_RocketTime_Value;
+			if (PatchState.GetBool(state->Override_RocketTimeMax_Enabled))
+				player.rocketTimeMax = state->Override_RocketTimeMax_Value;
+			if (PatchState.GetBool(state->Override_GravDir_Enabled))
+				player.gravDir = state->Override_GravDir_Value;
+
+			if (PatchState.GetBool(state->Override_MaxMinions_Enabled))
+				player.maxMinions = state->Override_MaxMinions_Value;
+			if (PatchState.GetBool(state->Override_MaxTurrets_Enabled))
+				player.maxTurrets = state->Override_MaxTurrets_Value;
+			if (PatchState.GetBool(state->Override_TileRangeX_Enabled))
+			{
+				Player.tileRangeX = state->Override_TileRangeX_Value;
+				player.lastTileRangeX = state->Override_TileRangeX_Value;
+			}
+			if (PatchState.GetBool(state->Override_TileRangeY_Enabled))
+			{
+				Player.tileRangeY = state->Override_TileRangeY_Value;
+				player.lastTileRangeY = state->Override_TileRangeY_Value;
+			}
+			if (PatchState.GetBool(state->Override_TileSpeed_Enabled))
+				player.tileSpeed = state->Override_TileSpeed_Value;
+			if (PatchState.GetBool(state->Override_WallSpeed_Enabled))
+				player.wallSpeed = state->Override_WallSpeed_Value;
+			if (PatchState.GetBool(state->Override_PickSpeed_Enabled))
+				player.pickSpeed = state->Override_PickSpeed_Value;
+			if (PatchState.GetBool(state->Override_BlockRange_Enabled))
+				player.blockRange = state->Override_BlockRange_Value;
+		}
+
+		private static byte ClampByte(int value)
+		{
+			if (value < byte.MinValue)
+				return byte.MinValue;
+			if (value > byte.MaxValue)
+				return byte.MaxValue;
+			return (byte)value;
 		}
 
 		private static void SetBuilderAccVisible(Player player, int index)

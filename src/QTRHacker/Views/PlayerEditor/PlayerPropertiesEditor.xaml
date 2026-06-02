@@ -1,115 +1,208 @@
 ﻿<UserControl x:Class="QTRHacker.Views.PlayerEditor.PlayerPropertiesEditor"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:QTRHacker.Views.PlayerEditor"
              xmlns:converters="clr-namespace:QTRHacker.Converters"
              xmlns:l="clr-namespace:QTRHacker.Localization"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d"
+             Width="980"
+             d:DesignHeight="520" d:DesignWidth="980">
     <UserControl.Resources>
+        <converters:InvertableBooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
         <Style TargetType="TextBox" x:Key="TextBoxStyle">
             <Setter Property="Margin" Value="0,1,0,1"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{StaticResource QTRHacker.TextBox.Background}"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="Foreground" Value="{StaticResource QTRHacker.SoftWhite}"/>
             <Setter Property="CaretBrush" Value="{StaticResource QTRHacker.SoftWhite}"/>
-            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="MinWidth" Value="68"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Style.Triggers>
                 <Trigger Property="IsFocused" Value="True">
                     <Setter Property="BorderBrush" Value="White"/>
                 </Trigger>
-                <Trigger Property="IsFocused" Value="False">
-                    <Setter Property="BorderBrush" Value="Transparent"/>
-                </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style TargetType="TextBox" x:Key="PropertyTextBoxStyle" BasedOn="{StaticResource TextBoxStyle}">
+            <Setter Property="Width" Value="78"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasError}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource QTRHacker.Error}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="TextBlock" x:Key="TextBlockStyle">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Foreground" Value="{StaticResource QTRHacker.SoftWhite}"/>
-            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="SectionTitleStyle">
+            <Setter Property="Foreground" Value="{StaticResource QTRHacker.Common.Foreground}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="PropertyRoleStyle">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{StaticResource QTRHacker.Common.Foreground}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="2,0"/>
+        </Style>
+
+        <Style TargetType="Border" x:Key="SectionBorderStyle">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
+            <Setter Property="Background" Value="{StaticResource QTRHacker.Common.WhiteMusk.O20}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource QTRHacker.Common.WhiteMusk.O40}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="CheckBox" x:Key="PropertyCheckBoxStyle">
+            <Setter Property="Foreground" Value="{StaticResource QTRHacker.SoftWhite}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0"/>
         </Style>
     </UserControl.Resources>
-    <Grid Margin="3">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <ItemsControl ItemsSource="{Binding Colors}" Focusable="False">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True">
-                    </StackPanel>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid Height="30">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition SharedSizeGroup="Tip" Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Tip, StringFormat={}{0}:}" 
-                                   Grid.Column="0" Margin="0,0,2,0"
-                                   HorizontalAlignment="Right" Style="{StaticResource TextBlockStyle}"/>
-                        <Rectangle Grid.Column="1" Width="{Binding Path=ActualHeight, RelativeSource={RelativeSource Self}}" Margin="4">
-                            <Rectangle.Fill>
-                                <SolidColorBrush Color="{Binding Color}" />
-                            </Rectangle.Fill>
-                        </Rectangle>
-                        <TextBlock Text="#" Grid.Column="2" Style="{StaticResource TextBlockStyle}"
-                                   HorizontalAlignment="Right"/>
-                        <TextBox Width="80" FontFamily="Consolas"
-                                 Grid.Column="3" Style="{StaticResource TextBoxStyle}">
-                            <TextBox.Text>
-                                <Binding Path="ColorInput">
-                                </Binding>
-                            </TextBox.Text>
-                        </TextBox>
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True" Grid.Column="1" Margin="8,0,0,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition SharedSizeGroup="Tip" Width="Auto"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Style="{StaticResource TextBlockStyle}" Margin="0,0,2,0">
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0}:">
-                            <l:Localization Key="UI.PlayerProperties.MaxLife"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-                <TextBox Grid.Column="1" Text="{Binding MaxLife}" Width="60" Style="{StaticResource TextBoxStyle}"/>
-            </Grid>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition SharedSizeGroup="Tip" Width="Auto"/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Style="{StaticResource TextBlockStyle}" Margin="0,0,2,0">
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0}:">
-                            <l:Localization Key="UI.PlayerProperties.MaxMana"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-                <TextBox Grid.Column="2" Text="{Binding MaxMana}" Width="60" Style="{StaticResource TextBoxStyle}"/>
-            </Grid>
-        </StackPanel>
-        <StackPanel Grid.Column="2" Orientation="Vertical" Margin="8,2,0,0">
-            <Button Content="{l:Localization UI.Refresh}" Command="{Binding RefreshCommand}" Style="{StaticResource QTRHacker.StripButtonStyle}" Focusable="True"/>
-            <Button Content="{l:Localization UI.Apply}" Command="{Binding ApplyCommand}" Style="{StaticResource QTRHacker.StripButtonStyle}" Focusable="True"/>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource SectionBorderStyle}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="{l:Localization UI.PlayerProperties.Appearance}"
+                               Style="{StaticResource SectionTitleStyle}"/>
+                    <ItemsControl ItemsSource="{Binding Colors}" Focusable="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="32" Margin="0,0,0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="86"/>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Tip, StringFormat={}{0}:}"
+                                               Grid.Column="0"
+                                               Margin="0,0,6,0"
+                                               HorizontalAlignment="Right"
+                                               Style="{StaticResource TextBlockStyle}"/>
+                                    <Rectangle Grid.Column="1" Width="24" Height="24" Margin="2">
+                                        <Rectangle.Fill>
+                                            <SolidColorBrush Color="{Binding Color}" />
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                    <TextBlock Text="#" Grid.Column="2" Style="{StaticResource TextBlockStyle}"
+                                               HorizontalAlignment="Right"/>
+                                    <TextBox Width="80" FontFamily="Consolas"
+                                             Grid.Column="3" Style="{StaticResource TextBoxStyle}">
+                                        <TextBox.Text>
+                                            <Binding Path="ColorInput"/>
+                                        </TextBox.Text>
+                                    </TextBox>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer Grid.Column="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding PropertyGroups}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource SectionBorderStyle}" Width="324">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}"
+                                               Style="{StaticResource SectionTitleStyle}"/>
+                                    <ItemsControl ItemsSource="{Binding Fields}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Height="30" Margin="{Binding RowMargin}"
+                                                      Visibility="{Binding IsAvailable, Converter={StaticResource BoolToVisibility}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="38"/>
+                                                        <ColumnDefinition Width="86"/>
+                                                        <ColumnDefinition Width="24"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding Label, StringFormat={}{0}:}"
+                                                               Margin="0,0,8,0"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Style="{StaticResource TextBlockStyle}"/>
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding RoleLabel}"
+                                                               Style="{StaticResource PropertyRoleStyle}"
+                                                               Visibility="{Binding HasRoleLabel, Converter={StaticResource BoolToVisibility}}"/>
+                                                    <TextBox Grid.Column="2"
+                                                             Style="{StaticResource PropertyTextBoxStyle}"
+                                                             IsReadOnly="{Binding IsValueReadOnly}"
+                                                             Visibility="{Binding IsText, Converter={StaticResource BoolToVisibility}}">
+                                                        <TextBox.Text>
+                                                            <Binding Path="ValueInput" UpdateSourceTrigger="PropertyChanged"/>
+                                                        </TextBox.Text>
+                                                    </TextBox>
+                                                    <CheckBox Grid.Column="2"
+                                                              Style="{StaticResource PropertyCheckBoxStyle}"
+                                                              IsChecked="{Binding BoolValue}"
+                                                              Visibility="{Binding IsBoolean, Converter={StaticResource BoolToVisibility}}"/>
+                                                    <CheckBox Grid.Column="3"
+                                                              Style="{StaticResource PropertyCheckBoxStyle}"
+                                                              IsChecked="{Binding IsRuntimeOverrideEnabled}"
+                                                              ToolTip="{l:Localization UI.PlayerProperties.RuntimeOverride}"
+                                                              Visibility="{Binding IsRuntimeOverride, Converter={StaticResource BoolToVisibility}}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,10,0">
+            <Button Content="{l:Localization UI.Refresh}" Command="{Binding RefreshCommand}" MinWidth="72"
+                    Style="{StaticResource QTRHacker.StripButtonStyle}" Focusable="True"/>
+            <Button Content="{l:Localization UI.Apply}" Command="{Binding ApplyCommand}" MinWidth="72" Margin="8,0,0,0"
+                    Style="{StaticResource QTRHacker.StripButtonStyle}" Focusable="True"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -24,6 +24,7 @@ public static class GameImages
 		LoadGameImage("NPCs");
 		LoadGameImage("Tiles");
 		LoadGameImage("Walls");
+		LoadGameImage("Buffs");
 	}
 	private static void LoadGameImage(string name)
 	{
@@ -59,6 +60,7 @@ public static class GameImages
 	public static BitmapImage GetNPCImage(int type) => GetImage($"NPCs.NPC_{type}");
 	public static BitmapImage GetTileImage(int type) => GetImage($"Tiles.Tiles_{type}");
 	public static BitmapImage GetWallImage(int type) => GetImage($"Walls.Wall_{type}");
+	public static BitmapImage GetBuffImage(int type) => GetImage($"Buffs.Buff_{type}");
 	public static byte[] GetItemImageData(int type) => GetImageData($"Items.Item_{type}");
 	public static byte[] GetNPCImageData(int type) => GetImageData($"NPCs.NPC_{type}");
 }

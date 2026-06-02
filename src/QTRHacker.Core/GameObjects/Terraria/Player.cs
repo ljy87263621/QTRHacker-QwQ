@@ -1,4 +1,5 @@
 ﻿using QHackLib;
+using System;
 using System.Diagnostics;
 using System.IO;
 
@@ -22,6 +23,7 @@ public partial class Player : Entity
 	public const int MISCDYE_MAX_COUNT = 5;
 	public const int BUFF_MAX_COUNT = 22;
 	public const int MAX_PLAYER = 256;
+	private const int BuffIDFishing = 121;
 
 	public void AddBuff(int type, int time, bool quiet = true)
 	{
@@ -30,6 +32,49 @@ public partial class Player : Entity
 		// The third param is now 'fromNetPvP' instead of 'quiet'. Pass false for normal buff time.
 		Context.RunByHookUpdate(TypedInternalObject.GetMethodCall("Terraria.Player.AddBuff(Int32, Int32, Boolean)")
 			.Call(true, null, null, new object[] { type, time, false }));
+	}
+
+	public bool FishingPotion
+	{
+		get => FindBuffIndexLocal(BuffIDFishing) >= 0;
+		set
+		{
+			if (value)
+			{
+				AddBuff(BuffIDFishing, 3600);
+				return;
+			}
+
+			ClearBuffLocal(BuffIDFishing);
+		}
+	}
+
+	private int FindBuffIndexLocal(int type)
+	{
+		var buffType = BuffType;
+		var buffTime = BuffTime;
+		int count = Math.Min(MaxBuffs, Math.Min(buffType.Length, buffTime.Length));
+		for (int i = 0; i < count; i++)
+		{
+			if (buffTime[i] >= 1 && buffType[i] == type)
+				return i;
+		}
+		return -1;
+	}
+
+	private void ClearBuffLocal(int type)
+	{
+		var buffType = BuffType;
+		var buffTime = BuffTime;
+		int count = Math.Min(MaxBuffs, Math.Min(buffType.Length, buffTime.Length));
+		for (int i = 0; i < count; i++)
+		{
+			if (buffType[i] == type)
+			{
+				buffType[i] = 0;
+				buffTime[i] = 0;
+			}
+		}
 	}
 
 	public void SaveInventory(Stream s)

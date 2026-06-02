@@ -9,35 +9,55 @@ public abstract class ItemPropertyData : ViewModelBase
 {
 	private readonly LocalizationItem LocalizationItem;
 	private object _Value;
+	private bool isDirty;
 
 	public PropertyInfo ItemProperty { get; }
 	public Type PropertyType => ItemProperty.PropertyType;
 
 	public string Key { get; }
 	public string Tip => LocalizationItem.Value;
+	public bool IsDirty
+	{
+		get => isDirty;
+		private set
+		{
+			isDirty = value;
+			OnPropertyChanged(nameof(IsDirty));
+		}
+	}
 
 	protected object InternalValue
 	{
 		get => _Value;
 		set
 		{
-			_Value = value;
-			InternalValueChanged?.Invoke(this, new EventArgs());
+			SetInternalValue(value, true);
 		}
 	}
 	protected event EventHandler InternalValueChanged;
 
 	public virtual void UpdateFromItem(Item item)
 	{
-		InternalValue = ItemProperty.GetValue(item);
+		SetInternalValue(ItemProperty.GetValue(item), false);
+		MarkClean();
 	}
 
 	public virtual void UpdateToItem(Item item)
 	{
 		ItemProperty.SetValue(item, InternalValue);
+		MarkClean();
 	}
 
 	public object GetValue() => InternalValue;
+	public void MarkClean() => IsDirty = false;
+
+	protected void SetInternalValue(object value, bool markDirty)
+	{
+		_Value = value;
+		if (markDirty)
+			IsDirty = true;
+		InternalValueChanged?.Invoke(this, EventArgs.Empty);
+	}
 
 	protected ItemPropertyData(string key)
 	{

@@ -25,6 +25,7 @@
 		<None Remove="Assets\GameImages\NPCs.bin" />
 		<None Remove="Assets\GameImages\Tiles.bin" />
 		<None Remove="Assets\GameImages\Walls.bin" />
+		<None Remove="Assets\GameImages\Buffs.bin" />
 		<None Remove="Assets\Game\Localization.zip" />
 		<None Remove="Assets\Game\TilesColor.json" />
 		<None Remove="Assets\Game\WikiRes.zip" />
@@ -39,6 +40,7 @@
 	<ItemGroup>
 		<Resource Include="Assets\GameImages\Tiles.bin" />
 		<Resource Include="Assets\GameImages\Items.bin" />
+		<Resource Include="Assets\GameImages\Buffs.bin" />
 		<Resource Include="Localization\Content\*.json" />
 	</ItemGroup>
 

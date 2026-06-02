@@ -1,5 +1,4 @@
 ﻿using QHackLib;
-using QHackLib.Assemble;
 using QHackLib.Memory;
 using QTRHacker.Core.GameObjects.ValueTypeRedefs.Xna;
 
@@ -22,26 +21,31 @@ public partial class Item : Entity
 
 	public void SetPrefix(int prefix)
 	{
-		Context.RunByHookUpdate(TypedInternalObject.GetMethodCall("Terraria.Item.Prefix(Int32)")
-			.Call(true, null, null, new object[] { prefix }));
+		if (prefix == 0)
+		{
+			ResetPrefixSafely();
+			return;
+		}
+
+		if (!HasValidTypeForGamePrefixLookup())
+		{
+			Prefix = 0;
+			return;
+		}
+
+		if (!CanApplyPrefix(prefix))
+		{
+			ResetPrefixByGame();
+			return;
+		}
+
+		ApplyPrefixByGame(prefix);
 	}
 
-	/// <summary>
-	/// Calling this is much more effective than calling the two functions separately.
-	/// </summary>
-	/// <param name="type"></param>
-	/// <param name="prefix"></param>
 	public void SetDefaultsAndPrefix(int type, int prefix)
 	{
-		Context.RunByHookUpdate(AssemblySnippet.FromCode(
-			new AssemblyCode[] {
-				Instruction.Create("push ecx"),
-				Instruction.Create("push edx"),
-				TypedInternalObject.GetMethodCall("Terraria.Item.SetDefaults(Int32, Terraria.GameContent.Items.ItemVariant)").Call(false, null, null, new object[] { type, (nuint)0 }),
-				TypedInternalObject.GetMethodCall("Terraria.Item.Prefix(Int32)").Call(false, null, null, new object[] { prefix }),
-				Instruction.Create("pop edx"),
-				Instruction.Create("pop ecx")
-			}));
+		SetDefaults(type);
+		SetPrefix(prefix);
 	}
 
 

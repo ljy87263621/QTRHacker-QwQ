@@ -7,8 +7,12 @@ using QTRHacker.ViewModels.Common.PropertyEditor;
 using QTRHacker.ViewModels.PlayerEditor;
 using QTRHacker.Views.Common;
 using QTRHacker.Views.PlayerEditor;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace QTRHacker.ViewModels.PagePanels;
@@ -188,71 +192,212 @@ public class PlayersPageViewModel : PagePanelViewModel
 		return result == true;
 	}
 
-	private static bool ShowWindow_GetBuff(out string type, out string time)
+	private static bool ShowWindow_GetBuff(out int type, out int time)
 	{
+		type = 0;
+		time = 0;
+
+		BuffPickerViewModel viewModel = new();
 		MWindow window = new();
-		window.SizeToContent = SizeToContent.WidthAndHeight;
+		window.Width = 760;
+		window.Height = 560;
 		window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-		window.Title = "Buff";
+		window.Title = LocalizationManager.Instance.GetValue("UI.BuffPicker.Title");
 		window.MinimizeBox = false;
-		Grid grid = new();
+		window.DataContext = viewModel;
+
+		Grid grid = new()
+		{
+			Margin = new Thickness(10)
+		};
 		window.Content = grid;
 
 		grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+		grid.RowDefinitions.Add(new RowDefinition());
 		grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-		grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-		grid.ColumnDefinitions.Add(new ColumnDefinition());
-		grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
 
-		Label tip1 = new();
-		tip1.Foreground = new SolidColorBrush(Colors.White);
-		tip1.Content = $"{LocalizationManager.Instance.GetValue("UI.Type")}:";
-		grid.Children.Add(tip1);
-		Grid.SetColumn(tip1, 0);
+		Grid topGrid = new();
+		topGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+		topGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(110) });
+		topGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+		topGrid.ColumnDefinitions.Add(new ColumnDefinition());
+		grid.Children.Add(topGrid);
+		Grid.SetRow(topGrid, 0);
 
-		TextBox box1 = new();
-		box1.Text = "5";
-		box1.Width = 160;
-		box1.VerticalContentAlignment = VerticalAlignment.Center;
-		box1.Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 255));
-		box1.Foreground = new SolidColorBrush(Colors.White);
-		grid.Children.Add(box1);
-		Grid.SetColumn(box1, 1);
+		Label timeTip = NewDialogLabel($"{LocalizationManager.Instance.GetValue("UI.Time")}:");
+		topGrid.Children.Add(timeTip);
+		Grid.SetColumn(timeTip, 0);
 
-		Label tip2 = new();
-		tip2.Foreground = new SolidColorBrush(Colors.White);
-		tip2.Content = $"{LocalizationManager.Instance.GetValue("UI.Time")}:";
-		grid.Children.Add(tip2);
-		Grid.SetColumn(tip2, 0);
-		Grid.SetRow(tip2, 1);
+		TextBox timeBox = NewDialogTextBox("3600");
+		topGrid.Children.Add(timeBox);
+		Grid.SetColumn(timeBox, 1);
 
-		TextBox box2 = new();
-		box2.Text = "3600";
-		box2.Width = 160;
-		box2.VerticalContentAlignment = VerticalAlignment.Center;
-		box2.Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 255));
-		box2.Foreground = new SolidColorBrush(Colors.White);
-		grid.Children.Add(box2);
-		Grid.SetColumn(box2, 1);
-		Grid.SetRow(box2, 1);
+		Label searchTip = NewDialogLabel($"{LocalizationManager.Instance.GetValue("UI.Search")}:");
+		searchTip.Margin = new Thickness(12, 0, 4, 0);
+		topGrid.Children.Add(searchTip);
+		Grid.SetColumn(searchTip, 2);
+
+		TextBox searchBox = NewDialogTextBox(string.Empty);
+		searchBox.MinWidth = 240;
+		searchBox.SetBinding(TextBox.TextProperty, new Binding(nameof(BuffPickerViewModel.FilterText))
+		{
+			UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+		});
+		topGrid.Children.Add(searchBox);
+		Grid.SetColumn(searchBox, 3);
+
+		ListBox buffList = new()
+		{
+			Margin = new Thickness(0, 10, 0, 10),
+			Background = new SolidColorBrush(Color.FromArgb(35, 255, 255, 255)),
+			BorderBrush = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+			Foreground = new SolidColorBrush(Colors.White),
+			ItemTemplate = CreateBuffItemTemplate(),
+			ItemsPanel = CreateBuffItemsPanel(),
+			SelectionMode = SelectionMode.Single
+		};
+		buffList.SetBinding(ItemsControl.ItemsSourceProperty, new Binding(nameof(BuffPickerViewModel.BuffsView)));
+		buffList.SetBinding(Selector.SelectedItemProperty, new Binding(nameof(BuffPickerViewModel.SelectedBuff)));
+		buffList.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
+		buffList.MouseDoubleClick += (s, e) => Confirm();
+
+		Style itemContainerStyle = new(typeof(ListBoxItem));
+		itemContainerStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
+		itemContainerStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(2)));
+		itemContainerStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+		buffList.ItemContainerStyle = itemContainerStyle;
+
+		grid.Children.Add(buffList);
+		Grid.SetRow(buffList, 1);
+
+		StackPanel buttons = new()
+		{
+			Orientation = Orientation.Horizontal,
+			HorizontalAlignment = HorizontalAlignment.Right
+		};
+		grid.Children.Add(buttons);
+		Grid.SetRow(buttons, 2);
 
 		Button btn = new();
 		btn.Foreground = new SolidColorBrush(Colors.White);
-		btn.Padding = new Thickness(2);
+		btn.Padding = new Thickness(10, 4, 10, 4);
+		btn.MinWidth = 72;
 		btn.Content = LocalizationManager.Instance.GetValue("UI.Confirm");
-		grid.Children.Add(btn);
-		Grid.SetColumn(btn, 2);
-		Grid.SetRowSpan(btn, 2);
+		buttons.Children.Add(btn);
 
-		btn.Click += (s, e) =>
+		Button cancelBtn = new();
+		cancelBtn.Foreground = new SolidColorBrush(Colors.White);
+		cancelBtn.Padding = new Thickness(10, 4, 10, 4);
+		cancelBtn.MinWidth = 72;
+		cancelBtn.Margin = new Thickness(8, 0, 0, 0);
+		cancelBtn.Content = LocalizationManager.Instance.GetValue("UI.Cancel");
+		cancelBtn.Click += (s, e) => window.Close();
+		buttons.Children.Add(cancelBtn);
+
+		btn.Click += (s, e) => Confirm();
+
+		bool confirmed = window.ShowDialog() == true;
+		if (!confirmed || viewModel.SelectedBuff is null)
+			return false;
+
+		type = viewModel.SelectedBuff.Type;
+		time = viewModel.BuffTime;
+		return true;
+
+		void Confirm()
 		{
+			if (viewModel.SelectedBuff is null)
+				return;
+			if (!int.TryParse(timeBox.Text, out int parsedTime) || parsedTime <= 0)
+			{
+				MessageBox.Show(LocalizationManager.Instance.GetValue("UI.BuffPicker.InvalidTime"));
+				return;
+			}
+			viewModel.BuffTime = parsedTime;
 			window.DialogResult = true;
 			window.Close();
-		};
+		}
+	}
 
-		var result = window.ShowDialog();
-		(type, time) = (box1.Text, box2.Text);
-		return result == true;
+	private static Label NewDialogLabel(string text)
+	{
+		return new Label
+		{
+			Content = text,
+			Foreground = new SolidColorBrush(Colors.White),
+			VerticalContentAlignment = VerticalAlignment.Center,
+			Padding = new Thickness(0, 0, 4, 0)
+		};
+	}
+
+	private static TextBox NewDialogTextBox(string text)
+	{
+		return new TextBox
+		{
+			Text = text,
+			VerticalContentAlignment = VerticalAlignment.Center,
+			Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 255)),
+			Foreground = new SolidColorBrush(Colors.White),
+			CaretBrush = new SolidColorBrush(Colors.White),
+			BorderBrush = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255)),
+			Margin = new Thickness(0, 0, 0, 0)
+		};
+	}
+
+	private static ItemsPanelTemplate CreateBuffItemsPanel()
+	{
+		FrameworkElementFactory panel = new(typeof(WrapPanel));
+		panel.SetValue(WrapPanel.OrientationProperty, Orientation.Horizontal);
+		return new ItemsPanelTemplate(panel);
+	}
+
+	private static DataTemplate CreateBuffItemTemplate()
+	{
+		FrameworkElementFactory border = new(typeof(Border));
+		border.SetValue(FrameworkElement.WidthProperty, 104d);
+		border.SetValue(FrameworkElement.HeightProperty, 92d);
+		border.SetValue(Border.PaddingProperty, new Thickness(4));
+		border.SetValue(Border.BackgroundProperty, new SolidColorBrush(Color.FromArgb(35, 255, 255, 255)));
+
+		FrameworkElementFactory stack = new(typeof(StackPanel));
+		stack.SetValue(StackPanel.OrientationProperty, Orientation.Vertical);
+		stack.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+		border.AppendChild(stack);
+
+		FrameworkElementFactory icon = new(typeof(ItemSlot));
+		icon.SetValue(FrameworkElement.WidthProperty, 44d);
+		icon.SetValue(FrameworkElement.HeightProperty, 44d);
+		icon.SetValue(Control.BackgroundProperty, new SolidColorBrush(Color.FromRgb(0x50, 0x50, 0x50)));
+		icon.SetValue(UIElement.IsHitTestVisibleProperty, false);
+		icon.SetValue(Control.FocusableProperty, false);
+		icon.SetBinding(ItemSlot.ItemImageSourceProperty, new Binding(nameof(BuffSelectionViewModel.Icon)));
+		stack.AppendChild(icon);
+
+		FrameworkElementFactory id = NewBuffTextBlock(12d);
+		id.SetBinding(TextBlock.TextProperty, new Binding(nameof(BuffSelectionViewModel.DisplayId)));
+		stack.AppendChild(id);
+
+		FrameworkElementFactory name = NewBuffTextBlock(12d);
+		name.SetValue(FrameworkElement.WidthProperty, 94d);
+		name.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
+		name.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+		name.SetBinding(TextBlock.TextProperty, new Binding(nameof(BuffSelectionViewModel.Name)));
+		stack.AppendChild(name);
+
+		return new DataTemplate
+		{
+			VisualTree = border
+		};
+	}
+
+	private static FrameworkElementFactory NewBuffTextBlock(double fontSize)
+	{
+		FrameworkElementFactory text = new(typeof(TextBlock));
+		text.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush(Colors.White));
+		text.SetValue(TextBlock.FontSizeProperty, fontSize);
+		text.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Center);
+		text.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+		return text;
 	}
 
 	private void LoadPets()
@@ -335,11 +480,9 @@ public class PlayersPageViewModel : PagePanelViewModel
 		});
 		AddBuffCommand = new(GetIsPlayerSelected, (o) =>
 		{
-			if (!ShowWindow_GetBuff(out string type, out string time))
+			if (!ShowWindow_GetBuff(out int type, out int time))
 				return;
-			if (!int.TryParse(type, out int type_i) || !int.TryParse(time, out int time_i))
-				return;
-			HackGlobal.GameContext.MyPlayer.AddBuff(type_i, time_i);
+			HackGlobal.GameContext.MyPlayer.AddBuff(type, time);
 		});
 		SetPetCommand = new(GetIsPlayerSelected, (o) =>
 		{
@@ -387,6 +530,90 @@ public class PlayersPageViewModel : PagePanelViewModel
 		public void OnCultureChanged(object sender, CultureChangedEventArgs args)
 		{
 			OnPropertyChanged(nameof(Name));
+		}
+	}
+
+	public sealed class BuffPickerViewModel : ViewModelBase
+	{
+		private string filterText;
+		private BuffSelectionViewModel selectedBuff;
+		private int buffTime = 3600;
+
+		public ObservableCollection<BuffSelectionViewModel> Buffs { get; } = new();
+		public ICollectionView BuffsView { get; }
+
+		public string FilterText
+		{
+			get => filterText;
+			set
+			{
+				filterText = value;
+				BuffsView.Refresh();
+				OnPropertyChanged(nameof(FilterText));
+			}
+		}
+
+		public BuffSelectionViewModel SelectedBuff
+		{
+			get => selectedBuff;
+			set
+			{
+				selectedBuff = value;
+				OnPropertyChanged(nameof(SelectedBuff));
+			}
+		}
+
+		public int BuffTime
+		{
+			get => buffTime;
+			set
+			{
+				buffTime = value;
+				OnPropertyChanged(nameof(BuffTime));
+			}
+		}
+
+		public BuffPickerViewModel()
+		{
+			foreach (var pair in WikiResLoader.BuffKeys.OrderBy(item => item.Key))
+			{
+				if (pair.Key <= 0)
+					continue;
+				Buffs.Add(new BuffSelectionViewModel(pair.Key, pair.Value));
+			}
+
+			BuffsView = CollectionViewSource.GetDefaultView(Buffs);
+			BuffsView.Filter = FilterBuff;
+		}
+
+		private bool FilterBuff(object item)
+		{
+			if (item is not BuffSelectionViewModel buff)
+				return false;
+			if (string.IsNullOrWhiteSpace(FilterText))
+				return true;
+
+			string filter = FilterText.Trim();
+			return buff.Type.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase)
+				|| buff.Key.Contains(filter, StringComparison.OrdinalIgnoreCase)
+				|| buff.Name.Contains(filter, StringComparison.OrdinalIgnoreCase);
+		}
+	}
+
+	public sealed class BuffSelectionViewModel
+	{
+		public int Type { get; }
+		public string Key { get; }
+		public string Name { get; }
+		public ImageSource Icon { get; }
+		public string DisplayId => $"ID: {Type}";
+
+		public BuffSelectionViewModel(int type, string key)
+		{
+			Type = type;
+			Key = key;
+			Name = LocalizationManager.Instance.GetValue($"BuffName.{key}", LocalizationType.Game);
+			Icon = GameImages.GetBuffImage(type);
 		}
 	}
 }

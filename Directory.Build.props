@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <NetCoreTargetingPackRoot Condition="Exists('C:\Users\ljy87\.dotnet7\packs\')">C:\Users\ljy87\.dotnet7\packs\</NetCoreTargetingPackRoot>
+  </PropertyGroup>
+</Project>

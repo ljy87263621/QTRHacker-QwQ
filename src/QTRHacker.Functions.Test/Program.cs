@@ -563,8 +563,8 @@ unsafe class Program
         ok &= RequireSourceContains("src/QTRHacker/Scripts/Functions/BuiltIn-2.cs", "Add<StrengthenVampireKnives>();");
         ok &= RequireSourceContains("src/QHackCLR/Common.cpp", "GC::KeepAlive(del);");
         ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "QTRHackerPatchState1456");
-        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Version = 2");
-        ok &= RequireSourceContains("src/QTRHacker.Core/RemotePatchState.cs", "ExpectedVersion = 2");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Version = 7");
+        ok &= RequireSourceContains("src/QTRHacker.Core/RemotePatchState.cs", "ExpectedVersion = 7");
         ok &= RequireSourceContains("src/QTRHacker.Core/RemotePatchState.cs", "QTRHackerPatchState1456");
         ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "RemotePatchState");
         ok &= RequireSourceContains("src/QTRHacker.Core/ItemCheckHookManager.cs", "GetPlayerItemCheckHookAddress");
@@ -573,16 +573,176 @@ unsafe class Program
         ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "FloatOneThird");
         ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "Player.tileRangeX = 0x1000");
         ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "player.tileSpeed = 3f");
+		ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "ApplyPlayerPropertyInfluenceOverrides(player)");
+		ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "ApplyPlayerPropertyFinalOverrides(player)");
+		ok &= RequireSourceNotContains("src/QTRHacker.Patches/Boot.cs", "PatchAll");
+		ok &= RequireSourceNotContains("src/QTRHacker.Patches/Boot.cs", "InstallHarmonyHooks()");
+		ok &= RequireSourceNotContains("src/QTRHacker.Patches/Boot.cs", "new Harmony");
+		ok &= RequireSourceNotContains("src/QTRHacker.Patches/Boot.cs", "AccessTools.Method");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Override_MeleeDamage_Enabled");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Override_MoveSpeed_Enabled");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Override_FishingSkill_Enabled");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Override_MaxMinions_Enabled");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "SetPlayerPropertyOverride");
+        ok &= RequireSourceContains("src/QTRHacker.Core/RemotePatchState.cs", "GetFieldAddress");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "UpdateNativePlayerPropertyOverrideHook(propertyName)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "PlayerPropertyMinionSlotsHookName");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "PlayerPropertyBuildStatsHookName");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "PlayerPropertyCombatStatsHookName");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "PlayerPropertyMovementStatsHookName");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "PlayerPropertyMinionSlots");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "PlayerPropertyBuildStats");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "PlayerPropertyCombatStats");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "PlayerPropertyMovementStats");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_MaxMinions_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_MaxTurrets_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_TileRangeX_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_TileSpeed_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_PickSpeed_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_BlockRange_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_StatDefense_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_MeleeDamage_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_Endurance_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_MoveSpeed_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_RunAcceleration_Enabled)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PlayerUpdateSnippets.cs", "GetFieldAddress(RemotePatchState.Field.Override_WingTimeMax_Enabled)");
         ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "ToggleManualLanterns");
         ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "ToggleLanternNight");
         ok &= RequireSourceContains("src/QTRHacker/Scripts/Functions/BuiltIn-4.cs", "ctx.Patches.ToggleLanternNight()");
         ok &= RequireSourceNotContains("src/QTRHacker/Scripts/Functions/BuiltIn-1.cs", "GlobalBrightness");
         ok &= RequireSourceNotContains("src/QTRHacker.Core/GameContext.cs", "SetStaticFieldValue(\"Terraria.GameContent.Events.LanternNight\"");
         ok &= RequireSourceNotContains("src/QTRHacker.Functions.Test/Program.cs", "RevealTheWhole" + "Map();");
+        ok &= RequirePlayerPropertyCatalogSource();
 
         Console.WriteLine(ok ? "  OK static compatibility checks" : "  FAIL static compatibility checks");
         if (!ok)
             Environment.ExitCode = 1;
+    }
+
+    private static bool RequirePlayerPropertyCatalogSource()
+    {
+        bool ok = true;
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "public static IReadOnlyList<PlayerPropertyDescriptor> PropertyCatalog");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "PropertyRole.Computed");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "PropertyRole.Influence");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "ValuePersistence.BuffSource");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"Luck\", typeof(float), ValuePersistence.Direct, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"TorchLuck\", typeof(float), ValuePersistence.Direct, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"EquipmentBasedLuckBonus\", typeof(float), ValuePersistence.Direct, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"LadyBugLuckTimeLeft\", typeof(int), ValuePersistence.RuntimeOverride, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"CoinLuck\", typeof(float), ValuePersistence.RuntimeOverride, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"LuckPotion\", typeof(byte), ValuePersistence.BuffSource, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"KiteLuckLevel\", typeof(byte), ValuePersistence.RuntimeOverride, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Luck\", \"BrokenMirrorBadLuckTime\", typeof(int), ValuePersistence.RuntimeOverride, PropertyRole.Influence)");
+        ok &= RequireSourceNotContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"FishingLuck\"");
+        ok &= RequireSourceNotContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "\"FishingSkill\"");
+        ok &= RequireSourceNotContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "\"FishingPotion\"");
+        ok &= RequireSourceNotContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "\"CratePotion\"");
+        ok &= RequireSourceNotContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "\"SonarPotion\"");
+        ok &= RequireSourceNotContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "\"AccTackleBox\"");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "SetPlayerPropertyBuffSource");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "if (!State.IsInitialized)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "if (!enabled && !State.IsInitialized)");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "ApplyPlayerPropertyBuffSources");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "AddBuff(");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "RemoveBuff(");
+        ok &= RequireSourceNotContains("src/QTRHacker.Patches/RuntimeActions.cs", "BuffID.Fishing");
+        ok &= RequireSourceNotContains("src/QTRHacker.Patches/RuntimeActions.cs", "BuffID.Crate");
+        ok &= RequireSourceNotContains("src/QTRHacker.Patches/RuntimeActions.cs", "BuffID.Sonar");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "BuffID.Ironskin");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/RuntimeActions.cs", "BuffID.Summoning");
+        ok &= RequireSourceNotContains("src/QTRHacker.Core/PatchesManager.cs", "[\"LuckPotion\"] = Override(");
+        ok &= RequireSourceNotContains("src/QTRHacker.Core/PatchesManager.cs", "[\"CratePotion\"] = Override(");
+        ok &= RequireSourceNotContains("src/QTRHacker.Core/PatchesManager.cs", "[\"SonarPotion\"] = Override(");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "IsComputed");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "RoleLabel");
+        ok &= RequireSourceContains("src/QTRHacker/Views/PlayerEditor/PlayerPropertiesEditor.xaml", "Margin=\"{Binding RowMargin}\"");
+        ok &= RequireSourceContains("src/QTRHacker/Views/PlayerEditor/PlayerPropertiesEditor.xaml", "Text=\"{Binding RoleLabel}\"");
+        ok &= RequireSourceContains("src/QTRHacker/Views/PlayerEditor/PlayerPropertiesEditor.xaml", "IsReadOnly=\"{Binding IsValueReadOnly}\"");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Override_BrokenMirrorBadLuckTime_Enabled");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PatchState.cs", "Override_HasLuck_LuckyClover_Enabled");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "ApplyPlayerPropertyInfluenceOverrides(player)");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "ApplyPlayerPropertyFinalOverrides(player)");
+        ok &= RequireSourceContains("src/QTRHacker/Localization/Content/zh.json", "\"Computed\":");
+        ok &= RequireSourceContains("src/QTRHacker/Localization/Content/zh.json", "\"Influence\":");
+        ok &= RequireSourceContains("src/QTRHacker/Localization/Content/en.json", "\"Computed\": \"Computed\"");
+        ok &= RequireSourceContains("src/QTRHacker/Localization/Content/en.json", "\"Influence\": \"Source\"");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Combat\", \"MeleeDamage\", typeof(float), ValuePersistence.RuntimeOverride, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Combat\", \"StatDefense\", typeof(int), ValuePersistence.RuntimeOverride, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Combat\", \"IronskinPotion\", typeof(bool), ValuePersistence.BuffSource, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Movement\", \"MoveSpeed\", typeof(float), ValuePersistence.RuntimeOverride, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Movement\", \"MaxRunSpeed\", typeof(float), ValuePersistence.RuntimeOverride, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Movement\", \"SwiftnessPotion\", typeof(bool), ValuePersistence.BuffSource, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"SummonBuild\", \"MaxMinions\", typeof(int), ValuePersistence.RuntimeOverride, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"SummonBuild\", \"TileSpeed\", typeof(float), ValuePersistence.RuntimeOverride, PropertyRole.Computed)");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"SummonBuild\", \"SummoningPotion\", typeof(bool), ValuePersistence.BuffSource, PropertyRole.Influence)");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "[\"MaxMinions\"] = Override(");
+        ok &= RequireSourceContains("src/QTRHacker.Core/PatchesManager.cs", "[\"StatDefense\"] = Override(");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "player.maxMinions = state->Override_MaxMinions_Value");
+        ok &= RequireSourceContains("src/QTRHacker.Patches/PlayerToggles.cs", "player.statDefense = state->Override_StatDefense_Value");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "new(\"Toggles\", \"LavaImmune\", typeof(bool))");
+        ok &= RequireSourceContains("src/QTRHacker/Views/PlayerEditor/PlayerPropertiesEditor.xaml", "ItemsSource=\"{Binding PropertyGroups}\"");
+        ok &= RequireSourceContains("src/QTRHacker/Localization/Content/zh.json", "\"Luck\": \"\u8fd0\u6c14\"");
+        ok &= RequireSourceContains("src/QTRHacker/Localization/Content/en.json", "\"Luck\": \"Luck\"");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "public bool IsAvailable");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "TargetInvocationException");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "ValuePersistence.RuntimeOverride");
+        ok &= RequireSourceContains("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs", "SetPlayerPropertyOverride");
+        ok &= RequireSourceContains("src/QTRHacker/Views/PlayerEditor/PlayerPropertiesEditor.xaml", "Visibility=\"{Binding IsAvailable, Converter={StaticResource BoolToVisibility}}\"");
+        ok &= RequireSourceContains("src/QTRHacker/Views/PlayerEditor/PlayerPropertiesEditor.xaml", "Visibility=\"{Binding IsRuntimeOverride, Converter={StaticResource BoolToVisibility}}\"");
+        ok &= RequirePlayerPropertyCatalogNamesExist();
+        return ok;
+    }
+
+    private static bool RequirePlayerPropertyCatalogNamesExist()
+    {
+        string catalogSource = File.ReadAllText("src/QTRHacker/ViewModels/PlayerEditor/PlayerPropertiesEditorViewModel.cs");
+        string playerSource = File.ReadAllText("src/QTRHacker.Core/GameObjects/Terraria/Player.ps.cs")
+            + Environment.NewLine
+            + File.ReadAllText("src/QTRHacker.Core/GameObjects/Terraria/Player.cs")
+            + Environment.NewLine
+            + File.ReadAllText("src/QTRHacker.Core/GameObjects/Terraria/Entity.cs");
+        var catalogProperties = System.Text.RegularExpressions.Regex
+            .Matches(catalogSource, "new\\(\"[^\"]+\",\\s*\"([^\"]+)\",\\s*typeof\\(([^)]+)\\)([^)]*)\\)")
+            .Select(match => new
+            {
+                Name = match.Groups[1].Value,
+                TypeName = match.Groups[2].Value,
+                Tail = match.Groups[3].Value,
+            })
+            .Where(item => !item.Tail.Contains("ValuePersistence.BuffSource", StringComparison.Ordinal))
+            .GroupBy(item => item.Name, StringComparer.Ordinal)
+            .Select(group => group.First())
+            .ToArray();
+
+        bool ok = true;
+        foreach (var catalogProperty in catalogProperties)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(
+                playerSource,
+                "public\\s+(?:virtual\\s+)?([^\\s\\r\\n]+)\\s+"
+                + System.Text.RegularExpressions.Regex.Escape(catalogProperty.Name)
+                + "\\s*(\\{|=>)");
+            bool exists = match.Success;
+            if (!exists)
+            {
+                Console.WriteLine($"  FAIL PlayerProperties catalog property missing on Player wrapper: {catalogProperty.Name}");
+                ok = false;
+                continue;
+            }
+
+            string actualType = match.Groups[1].Value;
+            if (!string.Equals(actualType, catalogProperty.TypeName, StringComparison.Ordinal))
+            {
+                Console.WriteLine($"  FAIL PlayerProperties catalog type mismatch: {catalogProperty.Name} catalog={catalogProperty.TypeName}, wrapper={actualType}");
+                ok = false;
+            }
+        }
+
+        Console.WriteLine(ok
+            ? $"  OK PlayerProperties catalog maps to {catalogProperties.Length} Player wrapper properties"
+            : "  FAIL PlayerProperties catalog contains invalid Player wrapper properties");
+        return ok;
     }
 
     private static bool RequireProperty(Type type, string name)

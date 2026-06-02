@@ -1,5 +1,4 @@
-using QHackLib.Assemble;
-using QHackLib.Memory;
+using QTRHacker.Core.GameObjects;
 using System;
 using System.Linq;
 
@@ -8,92 +7,56 @@ namespace QTRHacker.Core.GameObjects.Terraria;
 public partial class Item
 {
 	private const int MaxPrefixId = 97;
-	private const uint IntSize = 4;
+	private const string PrefixItemSetsTypeName = "Terraria.GameContent.Prefixes.PrefixLegacy.ItemSets";
+	private const string PrefixesTypeName = "Terraria.GameContent.Prefixes.PrefixLegacy.Prefixes";
+	private const string ItemIdSetsTypeName = "Terraria.ID.ItemID.Sets";
 
 	public int[] GetCompatiblePrefixes()
 	{
 		if (!HasValidTypeForGamePrefixLookup())
 			return Array.Empty<int>();
 
-		return GetCompatiblePrefixes(Context, Type);
+		return GetCompatiblePrefixes(Context, Type, Accessory, Vanity);
 	}
 
 	public static int[] GetCompatiblePrefixes(GameContext context, int type)
 	{
+		return GetCompatiblePrefixes(context, type, null, null);
+	}
+
+	private static int[] GetCompatiblePrefixes(GameContext context, int type, bool? accessory, bool? vanity)
+	{
 		if (!HasValidTypeForGamePrefixLookup(context, type))
 			return Array.Empty<int>();
 
-		using MemoryAllocation results = new(context.HContext, MaxPrefixId * IntSize);
-		var snippet = AssemblySnippet.FromEmpty();
-		nuint itemTypeHandle = context.GameModuleHelper.GetClrType("Terraria.Item").ClrHandle;
-		nuint typeofHelper = context.JitHelpersManager.GetJitHelperAddress("CORINFO_HELP_TYPEHANDLE_TO_RUNTIMETYPE");
-		nuint createInstance = context.HContext.BCLHelper.GetFunctionAddress(
-			"System.Activator",
-			m => m.Signature == "System.Activator.CreateInstance(System.Type)");
-		nuint setDefaults = context.GameModuleHelper.GetFunctionAddress(
-			"Terraria.Item",
-			m => m.Signature == "Terraria.Item.SetDefaults(Int32, Terraria.GameContent.Items.ItemVariant)");
-		nuint canRollPrefix = context.GameModuleHelper.GetFunctionAddress(
-			"Terraria.Item",
-			m => m.Signature == "Terraria.Item.CanRollPrefix(Int32)");
-		nuint applyPrefix = context.GameModuleHelper.GetFunctionAddress(
-			"Terraria.Item",
-			m => m.Signature == "Terraria.Item.Prefix(Int32)");
-		uint prefixFieldOffset = (uint)IntPtr.Size + context.GameModuleHelper.GetInstanceFieldOffset("Terraria.Item", "prefix");
-
-		snippet.Content.Add(AssemblySnippet.FromASMCode($"""
-			push esi
-			mov ecx,{itemTypeHandle}
-			call {typeofHelper}
-			mov ecx,eax
-			call {createInstance}
-			mov esi,eax
-			test esi,esi
-			jz qtr_get_prefixes_done
-			mov ecx,esi
-			mov edx,{type}
-			push 0
-			call {setDefaults}
-			"""));
-
-		for (int prefix = 1; prefix <= MaxPrefixId; prefix++)
+		try
 		{
-			nuint resultAddress = results.AllocationBase + (uint)((prefix - 1) * IntSize);
-			snippet.Content.Add(AssemblySnippet.FromASMCode($"""
-				mov ecx,esi
-				mov edx,{type}
-				push 0
-				call {setDefaults}
-				mov ecx,esi
-				mov edx,{prefix}
-				call {canRollPrefix}
-				test eax,eax
-				jz qtr_prefix_{prefix}_done
-				mov ecx,esi
-				mov edx,{prefix}
-				call {applyPrefix}
-				xor eax,eax
-				mov al,byte ptr [esi+{prefixFieldOffset}]
-				cmp eax,{prefix}
-				jne qtr_prefix_{prefix}_done
-				mov dword ptr [{resultAddress}],1
-				qtr_prefix_{prefix}_done:
-				"""));
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "SwordsHammersAxesPicks", type))
+				return GetPrefixArray(context, "PrefixesForSwords");
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "SpearsMacesChainsawsDrillsPunchCannon", type))
+				return GetPrefixArray(context, "PrefixesForSpears");
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "GunsBows", type))
+				return GetPrefixArray(context, "PrefixesForGunsBows");
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "Magic", type))
+				return GetPrefixArray(context, "PrefixesForMagic");
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "Summon", type))
+				return GetPrefixArray(context, "PrefixesForSummons");
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "BoomerangsChakrams", type))
+				return GetPrefixArray(context, "PrefixesForBoomeransAndChakrums");
+			if (IsInItemSet(context, PrefixItemSetsTypeName, "ItemsThatCanHaveLegendary2", type))
+				return GetPrefixArray(context, "PrefixesForBoomeransAndChakrums_TerrarianYoyo");
+			if ((!accessory.HasValue || (accessory.Value && !vanity.GetValueOrDefault()))
+				&& IsInItemSet(context, ItemIdSetsTypeName, "CanGetPrefixes", type))
+			{
+				return GetPrefixArray(context, "PrefixesForAccessories");
+			}
+		}
+		catch
+		{
+			return Array.Empty<int>();
 		}
 
-		snippet.Content.Add(AssemblySnippet.FromASMCode("""
-			qtr_get_prefixes_done:
-			pop esi
-			"""));
-
-		if (!context.RunByHookUpdate(snippet, 0x8000))
-			return Array.Empty<int>();
-
-		int[] flags = new int[MaxPrefixId];
-		context.HContext.DataAccess.Read(results.AllocationBase, flags, (uint)flags.Length);
-		return Enumerable.Range(1, MaxPrefixId)
-			.Where(prefix => flags[prefix - 1] != 0)
-			.ToArray();
+		return Array.Empty<int>();
 	}
 
 	public bool CanApplyPrefix(int prefix)
@@ -105,12 +68,21 @@ public partial class Item
 		if (!HasValidTypeForGamePrefixLookup())
 			return false;
 
-		using MemoryAllocation result = new(Context.HContext, IntSize);
-		bool invoked = Context.RunByHookUpdate(
-			TypedInternalObject.GetMethodCall("Terraria.Item.CanRollPrefix(Int32)")
-				.Call(true, null, result.AllocationBase, new object[] { prefix }));
+		return GetCompatiblePrefixes().Contains(prefix);
+	}
 
-		return invoked && result.Read<int>(0) != 0;
+	private static bool IsInItemSet(GameContext context, string typeName, string fieldName, int type)
+	{
+		var set = new GameObjectArrayV<bool>(context, context.GameModuleHelper.GetStaticHackObject(typeName, fieldName));
+		return type >= 0 && type < set.Length && set[type];
+	}
+
+	private static int[] GetPrefixArray(GameContext context, string fieldName)
+	{
+		var prefixes = new GameObjectArrayV<int>(context, context.GameModuleHelper.GetStaticHackObject(PrefixesTypeName, fieldName));
+		return prefixes.GetAllElements()
+			.Where(prefix => prefix > 0 && prefix <= MaxPrefixId)
+			.ToArray();
 	}
 
 	private bool HasValidTypeForGamePrefixLookup()

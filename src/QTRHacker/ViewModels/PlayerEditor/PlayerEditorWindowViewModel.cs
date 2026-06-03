@@ -66,12 +66,13 @@ public class PlayerEditorWindowViewModel : ViewModelBase
 
 	private Item GetLoadoutItem(int loadoutIndex, int index)
 	{
-		if (0 <= index && index < 20)
+		if (0 <= index && index < Player.ARMOR_MAX_COUNT)
 			return Player.Loadouts[loadoutIndex].Armor[index];//TODO: cache Inventory
-		else if (20 <= index && index < 30)
+		index -= Player.ARMOR_MAX_COUNT;
+
+		if (0 <= index && index < Player.DYE_MAX_COUNT)
 			return Player.Loadouts[loadoutIndex].Dye[index];//TODO: cache Inventory
-		else
-			throw new IndexOutOfRangeException();
+		throw new IndexOutOfRangeException();
 	}
 
 	private Item GetInventoryItem(int index) => Player.Inventory[index];//TODO: cache Inventory

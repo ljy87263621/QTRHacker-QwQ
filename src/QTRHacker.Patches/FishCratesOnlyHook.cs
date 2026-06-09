@@ -15,7 +15,7 @@ namespace QTRHacker.Patches
 		private static bool Installed;
 		private static readonly FieldInfo FishingContextField = typeof(Projectile).GetField(
 			"_context",
-			BindingFlags.Instance | BindingFlags.NonPublic);
+			BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic);
 
 		public static void Install()
 		{
@@ -96,9 +96,10 @@ namespace QTRHacker.Patches
 				return;
 
 			fisher.rolledEnemySpawn = 0;
+			FishingContext context = GetFishingContext(__instance);
 			if (fisher.rolledItemDrop <= 0 || !IsFishingCrate(fisher.rolledItemDrop) || HasNonCrateBobberResult(__instance))
 			{
-				fisher.rolledItemDrop = SelectFallbackCrate();
+				fisher.rolledItemDrop = SelectFallbackCrate(fisher, context);
 				WriteBobberItemResult(__instance, fisher);
 			}
 
@@ -123,7 +124,7 @@ namespace QTRHacker.Patches
 			SyncFishingContext(__instance, fisher);
 			FishingContext context = GetFishingContext(__instance);
 			fisher.rolledItemDrop = context == null ? 0 : Main.FishDropsDB.TryGetItemDropType(context);
-			ForceCrateItemDrop(ref fisher);
+			ForceCrateItemDrop(ref fisher, context);
 			SyncFishingContext(__instance, fisher);
 			return false;
 		}
@@ -140,11 +141,11 @@ namespace QTRHacker.Patches
 			fisher.rolledEnemySpawn = 0;
 		}
 
-		private static void ForceCrateItemDrop(ref FishingAttempt fisher)
+		private static void ForceCrateItemDrop(ref FishingAttempt fisher, FishingContext context)
 		{
 			fisher.rolledEnemySpawn = 0;
 			if (fisher.rolledItemDrop <= 0 || !IsFishingCrate(fisher.rolledItemDrop))
-				fisher.rolledItemDrop = SelectFallbackCrate();
+				fisher.rolledItemDrop = SelectFallbackCrate(fisher, context);
 		}
 
 		private static void SyncFishingContext(Projectile projectile, FishingAttempt fisher)
@@ -161,7 +162,8 @@ namespace QTRHacker.Patches
 			if (FishingContextField == null)
 				return null;
 
-			return FishingContextField.GetValue(projectile) as FishingContext;
+			object target = FishingContextField.IsStatic ? null : (object)projectile;
+			return FishingContextField.GetValue(target) as FishingContext;
 		}
 
 		private static bool HasNonCrateBobberResult(Projectile projectile)
@@ -195,11 +197,84 @@ namespace QTRHacker.Patches
 			projectile.netUpdate = true;
 		}
 
-		private static int SelectFallbackCrate()
+		internal static int SelectFallbackCrate(Projectile projectile)
 		{
-			const int WoodenCrate = 2334;
-			const int PearlwoodCrate = 3979;
-			return Main.hardMode ? PearlwoodCrate : WoodenCrate;
+			FishingContext context = GetFishingContext(projectile);
+			if (context == null)
+				return SelectTieredFallbackCrate(default(FishingAttempt));
+
+			return SelectFallbackCrate(context.Fisher, context);
+		}
+
+		internal static int SelectFallbackCrate(FishingAttempt fisher, FishingContext context)
+		{
+			if (fisher.inLava && fisher.CanFishInLava)
+				return SelectHardmodeCrate(ItemID.LavaCrate, ItemID.LavaCrateHard);
+
+			if (fisher.rare)
+			{
+				int biomeCrate = SelectBiomeCrate(fisher, context);
+				if (biomeCrate > 0)
+					return biomeCrate;
+			}
+
+			return SelectTieredFallbackCrate(fisher);
+		}
+
+		private static int SelectBiomeCrate(FishingAttempt fisher, FishingContext context)
+		{
+			Player player = context?.Player;
+			if (player != null)
+			{
+				if (player.ZoneDungeon && NPC.downedBoss3)
+					return SelectHardmodeCrate(ItemID.DungeonFishingCrate, ItemID.DungeonFishingCrateHard);
+				if (player.ZoneBeach || IsOriginalOcean(fisher))
+					return SelectHardmodeCrate(ItemID.OceanCrate, ItemID.OceanCrateHard);
+				if (player.ZoneHallow)
+					return SelectHardmodeCrate(ItemID.HallowedFishingCrate, ItemID.HallowedFishingCrateHard);
+			}
+
+			if (context != null)
+			{
+				if (context.RolledCorruption)
+					return SelectHardmodeCrate(ItemID.CorruptFishingCrate, ItemID.CorruptFishingCrateHard);
+				if (context.RolledCrimson)
+					return SelectHardmodeCrate(ItemID.CrimsonFishingCrate, ItemID.CrimsonFishingCrateHard);
+				if (context.RolledJungle)
+					return SelectHardmodeCrate(ItemID.JungleFishingCrate, ItemID.JungleFishingCrateHard);
+				if (context.RolledSnow)
+					return SelectHardmodeCrate(ItemID.FrozenCrate, ItemID.FrozenCrateHard);
+				if (context.RolledDesert)
+					return SelectHardmodeCrate(ItemID.OasisCrate, ItemID.OasisCrateHard);
+				if (context.RolledRemixOcean)
+					return SelectHardmodeCrate(ItemID.OceanCrate, ItemID.OceanCrateHard);
+			}
+
+			if (fisher.heightLevel == 0)
+				return SelectHardmodeCrate(ItemID.FloatingIslandFishingCrate, ItemID.FloatingIslandFishingCrateHard);
+
+			return 0;
+		}
+
+		private static int SelectTieredFallbackCrate(FishingAttempt fisher)
+		{
+			if (fisher.legendary || fisher.veryrare)
+				return SelectHardmodeCrate(ItemID.GoldenCrate, ItemID.GoldenCrateHard);
+			if (fisher.rare || fisher.uncommon)
+				return SelectHardmodeCrate(ItemID.IronCrate, ItemID.IronCrateHard);
+			return SelectHardmodeCrate(ItemID.WoodenCrate, ItemID.WoodenCrateHard);
+		}
+
+		private static int SelectHardmodeCrate(int earlyModeCrate, int hardModeCrate)
+		{
+			return Main.hardMode ? hardModeCrate : earlyModeCrate;
+		}
+
+		private static bool IsOriginalOcean(FishingAttempt fisher)
+		{
+			return fisher.heightLevel <= 1
+				&& fisher.waterTilesCount > 1000
+				&& (fisher.X < 380 || fisher.X > Main.maxTilesX - 380);
 		}
 
 		private static void LogInstallError(string message)

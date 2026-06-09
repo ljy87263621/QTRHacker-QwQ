@@ -383,7 +383,7 @@ namespace QTRHacker.Patches
 				if (itemType <= 0 || IsFishingCrate(itemType))
 					continue;
 
-				bobber.localAI[1] = SelectFallbackCrate();
+				bobber.localAI[1] = FishCratesOnlyHook.SelectFallbackCrate(bobber);
 				bobber.netUpdate = true;
 			}
 		}
@@ -396,12 +396,6 @@ namespace QTRHacker.Patches
 				&& ItemID.Sets.IsFishingCrate[itemType];
 		}
 
-		private static int SelectFallbackCrate()
-		{
-			const int WoodenCrate = 2334;
-			const int PearlwoodCrate = 3979;
-			return Main.hardMode ? PearlwoodCrate : WoodenCrate;
-		}
 
 		private static void ReplaceCoinPortalCoins()
 		{

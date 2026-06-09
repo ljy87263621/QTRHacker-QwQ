@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +27,7 @@ namespace QTRHacker.Patches
 			try
 			{
 				RuntimeHelpers.RunClassConstructor(typeof(PatchState).TypeHandle);
+				FishCratesOnlyHook.Install();
 				InitializePatchTypes();
 
 				StartUpdateTimer();
